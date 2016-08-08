@@ -1,0 +1,55 @@
+package monster860.fastdmm.editing;
+
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
+import monster860.fastdmm.FastDMM;
+import monster860.fastdmm.dmmmap.Location;
+import monster860.fastdmm.dmmmap.TileInstance;
+import monster860.fastdmm.objtree.ModifiedType;
+import monster860.fastdmm.objtree.ObjInstance;
+
+public class EditVarsListener implements ActionListener {
+	
+	FastDMM editor;
+	Location location;
+	ObjInstance oInstance;
+	
+	public EditVarsListener(FastDMM editor, Location mapLocation, ObjInstance instance) {
+		this.editor = editor;
+		this.location = mapLocation;
+		this.oInstance = instance;
+	}
+	
+	@Override
+	public void actionPerformed(ActionEvent e) {
+		if(editor.dmm == null)
+			return;
+		TileInstance ti;
+		synchronized(editor) {
+			String key = editor.dmm.map.get(location);
+			if(key == null)
+				return;
+			ti = editor.dmm.instances.get(key);
+			if(ti == null)
+				return;
+		}
+		ModifiedType mt = ModifiedType.deriveFrom(oInstance);
+		if(!mt.viewVariables(editor))
+			return;
+		synchronized(editor) {	
+			if(editor.dmm.modifiedTypes.containsKey(mt.toString())) {
+				mt = editor.dmm.modifiedTypes.get(mt.toString());
+			} else {
+				editor.dmm.modifiedTypes.put(mt.toString(), mt);
+				if(mt.parent != null) {
+					mt.parent.addInstance(mt);
+				}
+			}
+			
+			String newKey = ti.replaceObject(oInstance, mt);
+			
+			editor.dmm.putMap(location, newKey);
+		}
+	}
+}

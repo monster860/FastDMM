@@ -1,0 +1,3 @@
+LWJGL is licensed under the license here: http://legacy.lwjgl.org/license.php
+
+pngJ and Guava is licensed under the Apache license: http://www.apache.org/licenses/LICENSE-2.0
