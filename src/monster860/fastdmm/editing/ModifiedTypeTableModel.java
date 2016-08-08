@@ -30,7 +30,7 @@ public class ModifiedTypeTableModel extends AbstractTableModel {
 		
 		for(Map.Entry<String,String> ent : allVars.entrySet()) {
 			if(ent.getKey().equals("type") || ent.getKey().equals("parentType"))
-				return; // These vars are represented in the object tree for the sole purpose of compatibility with byond.
+				continue; // These vars are represented in the object tree for the sole purpose of compatibility with byond.
 			displayedKeys.add(ent.getKey());
 			displayedVals.add(type.vars.containsKey(ent.getKey()) ? new ModifiedTypeRenderer.BoldString(ent.getValue()) : ent.getValue());
 		}
