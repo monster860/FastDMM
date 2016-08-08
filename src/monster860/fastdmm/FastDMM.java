@@ -74,7 +74,7 @@ public class FastDMM extends JFrame implements ActionListener, TreeSelectionList
 	private JMenuItem menuItemOpen;
 	private JMenuItem menuItemSave;
 	
-	private PopupMenu currPopup;
+	private JPopupMenu currPopup;
 	
 	private JTree objTreeVis;
 	private JList<ObjInstance> instancesVis;
@@ -482,27 +482,35 @@ public class FastDMM extends JFrame implements ActionListener, TreeSelectionList
 		
 		while(Mouse.next()) {
 			if(Mouse.getEventButtonState()) {
+				if(currPopup != null && !currPopup.isVisible())
+					currPopup = null;
+				if(currPopup != null) {
+					currPopup.setVisible(false);
+					currPopup = null;
+					continue;
+				}
 				Location l = new Location(selX, selY, 1);
 				String key = dmm.map.get(l);
 				if(Mouse.getEventButton() == 1) {
 					if(key != null) {
 						TileInstance tInstance = dmm.instances.get(key);
-						currPopup = new PopupMenu();
+						currPopup = new JPopupMenu();
+						currPopup.setLightWeightPopupEnabled(false);
 						for(ObjInstance i : tInstance.getLayerSorted()) {
 							if(i == null)
 								continue;
-							Menu menu = new Menu(i.typeString());
+							JMenu menu = new JMenu(i.typeString());
 							currPopup.add(menu);
 							
-							MenuItem item = new MenuItem("Delete");
+							JMenuItem item = new JMenuItem("Delete");
 							item.addActionListener(new DeleteListener(this, l, i));
 							menu.add(item);
 							
-							item = new MenuItem("View Variables");
+							item = new JMenuItem("View Variables");
 							item.addActionListener(new EditVarsListener(this, l, i));
 							menu.add(item);
 						}
-						canvas.add(currPopup);
+						canvas.getParent().add(currPopup);
 						currPopup.show(canvas, Mouse.getX(), Display.getHeight()-Mouse.getY());
 					}
 				} else if (Mouse.getEventButton() == 0 && selectedInstance != null) {
