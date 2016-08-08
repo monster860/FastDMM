@@ -58,7 +58,7 @@ public class TileInstance {
 		boolean isFirst = true;
 		for(ObjInstance obj : objs) {
 			if(isFirst)
-				isFirst = true;
+				isFirst = false;
 			else
 				sb.append(",\n");
 			sb.append(obj.toStringTGM());

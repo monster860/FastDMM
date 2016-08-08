@@ -111,7 +111,7 @@ public class ModifiedType extends ObjInstance {
 			out.append(" = ");
 			out.append(e.getValue());
 		}
-		out.append("\n}");
+		out.append("\n\t}");
 		return out.toString();
 	}
 	
