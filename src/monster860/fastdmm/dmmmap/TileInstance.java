@@ -205,7 +205,7 @@ public class TileInstance {
 	}
 	
 	public boolean equals(Object other) {
-		if(!(other instanceof ModifiedType))
+		if(!(other instanceof TileInstance))
 			return false;
 		if(other == this)
 			return true;
