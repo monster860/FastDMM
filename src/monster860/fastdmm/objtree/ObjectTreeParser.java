@@ -28,7 +28,8 @@ public class ObjectTreeParser {
 	int parenthesisDepth = 0;
 	int stringDepth = 0;
 	int stringExpDepth = 0;
-	int parenthesesDepth = 0; 
+	int parenthesesDepth = 0;
+	int[] arrayDepth = new int[50];
 	
 	public ObjectTree tree;
 	
@@ -396,7 +397,8 @@ public class ObjectTreeParser {
 		parenthesisDepth = 0;
 		stringDepth = 0;
 		stringExpDepth = 0;
-		parenthesesDepth = 0; 
+		parenthesesDepth = 0;
+		arrayDepth = new int[50];
 	}
 	
 	public String stripComments(String s)
@@ -431,9 +433,14 @@ public class ObjectTreeParser {
 						multilineStringDepth = stringDepth;
 					}
 				}
-				if(c == '[' && (pC != '\\' || ppC == '\\') && stringDepth != stringExpDepth)
+				if(c == '[' && stringDepth == stringExpDepth)
+					arrayDepth[stringExpDepth]++;
+				else if(c == '[' && (pC != '\\' || ppC == '\\') && stringDepth != stringExpDepth)
 					stringExpDepth++;
-				if(c == ']' && stringDepth > 0 && stringDepth == stringExpDepth)
+				
+				if(c == ']' && arrayDepth[stringExpDepth] != 0)
+					arrayDepth[stringExpDepth]--;
+				else if(c == ']' && stringDepth > 0 && stringDepth == stringExpDepth)
 					stringExpDepth--;
 				if(c == '(' && stringDepth == stringExpDepth)
 					parenthesisDepth++;
