@@ -408,7 +408,7 @@ public class FastDMM extends JFrame implements ActionListener, TreeSelectionList
 				if(name != null && name.trim().length() > 0) {
 					dmi = new DMI(new File(dme.getParentFile(), name));
 				}
-			} catch (IOException e) {
+			} catch (Exception e) {
 				e.printStackTrace();
 			}
 			if(dmi != null && doInitGL) {
