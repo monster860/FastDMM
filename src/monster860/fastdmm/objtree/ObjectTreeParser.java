@@ -274,6 +274,10 @@ public class ObjectTreeParser {
 					}
 					if(path.endsWith(".dm") || path.endsWith(".dme")) {
 						File includeFile = new File(file.getParentFile(), path);
+						if(!includeFile.exists()) {
+							System.err.println(file.getName() + " references a nonexistent file: " + includeFile.getAbsolutePath());
+							continue;
+						}
 						ObjectTreeParser parser = new ObjectTreeParser(tree);
 						parser.macros = macros;
 						parser.doParse(includeFile, false);
