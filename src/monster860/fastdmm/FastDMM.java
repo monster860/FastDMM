@@ -15,7 +15,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.PrintWriter;
-import java.io.StringBufferInputStream;
 import java.io.StringWriter;
 import java.util.*;
 
@@ -45,7 +44,6 @@ import monster860.fastdmm.objtree.ObjectTree;
 import monster860.fastdmm.objtree.ObjectTreeParser;
 import monster860.fastdmm.objtree.ObjectTreeRenderer;
 
-import org.apache.sanselan.ImageReadException;
 import org.lwjgl.LWJGLException;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
@@ -97,7 +95,7 @@ public class FastDMM extends JFrame implements ActionListener, TreeSelectionList
 	
 	private boolean areMenusFrozen = false;
 	
-	public static final void main(String[] args) throws IOException, ImageReadException, LWJGLException
+	public static final void main(String[] args) throws IOException, LWJGLException
 	{
 		try {
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
