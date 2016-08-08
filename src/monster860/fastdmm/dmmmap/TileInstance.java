@@ -203,4 +203,14 @@ public class TileInstance {
 		ti.objs.set(ti.objs.indexOf(objA), objB);
 		return dmm.getKeyForInstance(ti);
 	}
+	
+	public boolean equals(Object other) {
+		if(!(other instanceof ModifiedType))
+			return false;
+		if(other == this)
+			return true;
+		if(other.toString().equals(toString()))
+			return true;
+		return false;
+	}
 }
