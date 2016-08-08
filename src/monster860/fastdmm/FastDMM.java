@@ -3,6 +3,7 @@ package monster860.fastdmm;
 import java.awt.BorderLayout;
 import java.awt.Canvas;
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.KeyEventDispatcher;
 import java.awt.KeyEventPostProcessor;
 import java.awt.KeyboardFocusManager;
@@ -499,7 +500,19 @@ public class FastDMM extends JFrame implements ActionListener, TreeSelectionList
 						for(ObjInstance i : tInstance.getLayerSorted()) {
 							if(i == null)
 								continue;
+							boolean valid = false;
+							synchronized(filters) {
+		        				for(String s : filters) {
+		        					if(i.toString().startsWith(s)) {
+		        						valid = true;
+		        						break;
+		        					}
+		        				}
+		        			}
+							
 							JMenu menu = new JMenu(i.typeString());
+							if(valid)
+								menu.setFont(menu.getFont().deriveFont(Font.BOLD)); // Make it bold if is visible by the filter.
 							currPopup.add(menu);
 							
 							JMenuItem item = new JMenuItem("Delete");
