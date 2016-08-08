@@ -204,6 +204,10 @@ public class TileInstance {
 		return dmm.getKeyForInstance(ti);
 	}
 	
+	public int hashCode() {
+		return toString().hashCode();
+	}
+	
 	public boolean equals(Object other) {
 		if(!(other instanceof TileInstance))
 			return false;
