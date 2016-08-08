@@ -52,10 +52,12 @@ public class DMM {
 		this.objTree = objTree;
 		BufferedReader br = new BufferedReader(new FileReader(file));
 		String line = null;
-		ArrayList<String> lines = new ArrayList<String>();
 		String runOn = "";
 		int keyLen = 0;
 		Set<String> unusedKeysSet = new HashSet<String>();
+		
+		Map<String, String> substitutions = new TreeMap<String, String>();
+		
 		while ((line = br.readLine()) != null) {
 			line = line.trim();
 			if(Pattern.matches("//MAP CONVERTED BY dmm2tgm.py THIS HEADER COMMENT PREVENTS RECONVERSION, DO NOT REMOVE", line))
@@ -75,9 +77,15 @@ public class DMM {
 					runOn = line;
 				} else {
 					runOn = "";
-					lines.add(line);
 					Matcher m = Pattern.compile("\"([a-zA-Z]*)\" ?= ?\\((.+)\\)").matcher(line);
 					if(m.find()) {
+						TileInstance ti = TileInstance.fromString(m.group(2), objTree, this);
+						
+						// Handle cases where DM put in duplicate instances.
+						if(instances.inverse().containsKey(ti)) {
+							substitutions.put(m.group(1), instances.inverse().get(ti));
+							continue;
+						}
 						instances.put(m.group(1), TileInstance.fromString(m.group(2), objTree, this));
 						if(keyLen == 0) {
 							keyLen = m.group(1).length();
@@ -122,7 +130,10 @@ public class DMM {
 			}
 			for(int i = 0; i < line.length(); i += keyLen) {
 				Location loc = new Location(cursorX + partX, cursorY + partY, partZ) ;
-				reverseMap.put(loc, line.substring(i, i+keyLen));
+				String key = line.substring(i, i+keyLen);
+				if(substitutions.containsKey(key))
+					key = substitutions.get(key);
+				reverseMap.put(loc, key);
 				
 				if(loc.x > maxX) {
 					maxX = loc.x;
