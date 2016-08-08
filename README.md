@@ -7,6 +7,8 @@ Welcome! This is a map editor for BYOND designed to not suck as much, mostly by 
 - The ability to specify filters more specific than just "obj, mob, area, turf"
 - The ability to place directional objects more easily
 - It doesn't fail miserably when trying to render 64x64 icons and/or planes.
+- No need to run mapmerged, the diff is already minimal.
+- Keys are randomized to prevent merge conflicts from occuring.
 
 ### Great, now how do I use it?
 
