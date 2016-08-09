@@ -193,7 +193,7 @@ public class ObjectTree implements TreeModel {
 					m.appendTail(outVal);
 					val = outVal.toString();
 					
-					// Parse additions.
+					// Parse additions/subtractions.
 					m = Pattern.compile("([\\d\\.]+)[ \\t]*(\\+|\\-)[ \\t]*([\\d\\.]+)").matcher(val);
 					outVal = new StringBuffer();
 					while(m.find()) {
@@ -205,6 +205,15 @@ public class ObjectTree implements TreeModel {
 							m.appendReplacement(outVal, (Float.parseFloat(m.group(1)) / Float.parseFloat(m.group(3)))+"");
 							break;
 						}
+					}
+					m.appendTail(outVal);
+					val = outVal.toString();
+					
+					// Parse parentheses
+					m = Pattern.compile("\\(([\\d\\.]+)\\)").matcher(val);
+					outVal = new StringBuffer();
+					while(m.find()) {
+						m.appendReplacement(outVal, m.group(1));
 					}
 					m.appendTail(outVal);
 					val = outVal.toString();
