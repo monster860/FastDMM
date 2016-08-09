@@ -1,19 +1,15 @@
 package com.github.monster860.fastdmm.objtree;
 
-import java.awt.Color;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.TreeMap;
-import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -22,11 +18,10 @@ import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 import javax.swing.event.TreeModelListener;
 import javax.swing.tree.TreeModel;
-import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 
 public class ObjectTree implements TreeModel {
-	public HashMap<String,Item> items = new HashMap<String,Item>();
+	public HashMap<String,Item> items = new HashMap<>();
 	public String dmePath;
 	
 	public int icon_size;
@@ -238,14 +233,7 @@ public class ObjectTree implements TreeModel {
 		System.gc();
 		// Sort children
 		for(Item i : items.values()) {
-			i.subtypes.sort(new Comparator<Item>(){
-
-				@Override
-				public int compare(Item arg0, Item arg1) {
-					return arg0.path.compareToIgnoreCase(arg1.path);
-				}
-				
-			});
+			i.subtypes.sort((arg0, arg1) -> arg0.path.compareToIgnoreCase(arg1.path));
 		}
 		
 		try {
@@ -306,7 +294,7 @@ public class ObjectTree implements TreeModel {
 		}
 		
 		public Map<String, String> getAllVars() {
-			Map<String, String> allVars = new TreeMap<String, String>();
+			Map<String, String> allVars = new TreeMap<>();
 			if(parent != null)
 				allVars.putAll(parent.getAllVars());
 			allVars.putAll(vars);
@@ -314,25 +302,22 @@ public class ObjectTree implements TreeModel {
 		}
 		
 		public String path = "";
-		public ArrayList<Item> subtypes = new ArrayList<Item>();
+		public ArrayList<Item> subtypes = new ArrayList<>();
 		public Item parent = null;
-		public Map<String, String> vars = new TreeMap<String, String>();
-		public List<ObjInstance> instances = new ArrayList<ObjInstance>();
+		public Map<String, String> vars = new TreeMap<>();
+		public List<ObjInstance> instances = new ArrayList<>();
 		
 		public void addInstance(ObjInstance instance) {
 			if(instances.contains(instance))
 				return;
 			instances.add(instance);
-			Collections.sort(instances, new Comparator<ObjInstance>(){
-				@Override
-				public int compare(ObjInstance o1, ObjInstance o2) {
-					if(o1 instanceof Item)
-						return -1;
-					if(o2 instanceof Item)
-						return 1;
-					return o1.toString().compareToIgnoreCase(o2.toString());
-				}
-			});
+			Collections.sort(instances, (o1, o2) -> {
+                if(o1 instanceof Item)
+                    return -1;
+                if(o2 instanceof Item)
+                    return 1;
+                return o1.toString().compareToIgnoreCase(o2.toString());
+            });
 			int index = instances.indexOf(instance);
 			ListDataEvent event = new ListDataEvent(this, ListDataEvent.INTERVAL_ADDED, index, index);
 			for(ListDataListener l : listeners) {
@@ -373,7 +358,7 @@ public class ObjectTree implements TreeModel {
 			return path;
 		}
 		
-		private HashSet<ListDataListener> listeners = new HashSet<ListDataListener>();
+		private HashSet<ListDataListener> listeners = new HashSet<>();
 
 		@Override
 		public void addListDataListener(ListDataListener arg0) {

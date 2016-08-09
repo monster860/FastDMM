@@ -10,10 +10,10 @@ public class ModifiedTypeTableModel extends AbstractTableModel {
 	private static final long serialVersionUID = 3829092639624884439L;
 	
 	public ModifiedType type;
-	public Map<String, String> allVars = new TreeMap<String, String>();
+	public Map<String, String> allVars = new TreeMap<>();
 	
-	private List<String> displayedKeys = new ArrayList<String>();
-	private List<Object> displayedVals = new ArrayList<Object>();
+	private List<String> displayedKeys = new ArrayList<>();
+	private List<Object> displayedVals = new ArrayList<>();
 	
 	public boolean doReturnTrue = false;
 	

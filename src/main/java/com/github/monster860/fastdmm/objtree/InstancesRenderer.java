@@ -4,7 +4,6 @@ import java.awt.Component;
 
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.JList;
-import javax.swing.JTree;
 
 import com.github.monster860.fastdmm.FastDMM;
 import com.github.monster860.fastdmm.dmirender.DMI;

@@ -13,7 +13,7 @@ import com.github.monster860.fastdmm.dmmmap.TileInstance;
 import com.github.monster860.fastdmm.objtree.ObjInstance;
 
 public class DefaultPlacementHandler implements PlacementHandler {
-	private Set<Location> usedLocations = new HashSet<Location>();
+	private Set<Location> usedLocations = new HashSet<>();
 	private FastDMM editor;
 	private ObjInstance oInstance;
 	@Override

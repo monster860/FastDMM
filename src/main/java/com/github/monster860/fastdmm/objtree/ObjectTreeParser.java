@@ -33,7 +33,7 @@ public class ObjectTreeParser {
 	
 	public ObjectTree tree;
 	
-	public Map<String, String> macros = new HashMap<String, String>();
+	public Map<String, String> macros = new HashMap<>();
 	public JFrame modalParent;
 	
 	public ObjectTreeParser() {
@@ -210,7 +210,7 @@ public class ObjectTreeParser {
 	{
 		BufferedReader br = new BufferedReader(new FileReader(file));
 		String line = null;
-		ArrayList<String> lines = new ArrayList<String>();
+		ArrayList<String> lines = new ArrayList<>();
 		StringBuilder runOn = new StringBuilder();;
 		int includeCount = 0;
 		// This part turns spaces into tabs, strips all the comments, and puts multiline statements on one line.
@@ -238,7 +238,7 @@ public class ObjectTreeParser {
 		}
 		br.close();
 		
-		ArrayList<String> pathTree = new ArrayList<String>();
+		ArrayList<String> pathTree = new ArrayList<>();
 		
 		int currentInclude = 0;
 		
@@ -254,121 +254,117 @@ public class ObjectTreeParser {
 			dlg.add(BorderLayout.NORTH, lbl);
 			dlg.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
 			dlg.setSize(300, 75);
-			Thread t = new Thread(new Runnable() {
-				public void run() {
-					tdlg.setVisible(true);
-				}
-			});
+			Thread t = new Thread(() -> {
+                tdlg.setVisible(true);
+            });
 			t.start();
 		}
-		
-		for(int i = 0; i < lines.size(); i++) {
-			line = lines.get(i);
-			// Process #include, #define, and #undef
-			if(line.trim().startsWith("#")) {
-				line = line.trim();
-				if(line.startsWith("#include")) {
-					String path = line.split("\"")[1];
-					if(isMainFile) {
-						lbl.setText(path);
-					}
-					if(path.endsWith(".dm") || path.endsWith(".dme")) {
-						File includeFile = new File(file.getParentFile(), path);
-						if(!includeFile.exists()) {
-							System.err.println(file.getName() + " references a nonexistent file: " + includeFile.getAbsolutePath());
-							continue;
-						}
-						ObjectTreeParser parser = new ObjectTreeParser(tree);
-						parser.macros = macros;
-						parser.doParse(includeFile, false);
-					}
-					if(isMainFile) {
-						currentInclude++;
-						//System.out.println("Obj tree progress: " + (currentInclude*100f)/includeCount);
-						dpb.setValue(currentInclude);
-					}
-				}
-				if(line.startsWith("#define")) {
-					Matcher m = Pattern.compile("#define +([\\d\\w]+) +(.+)").matcher(line);
-					if(m.find()) {
-						macros.put(m.group(1), m.group(2).replace("$", "\\$"));
-					}
-				}
-				if(line.startsWith("#undef")) {
-					Matcher m = Pattern.compile("#undef[ \\t]*([\\d\\w]+)").matcher(line);
-					if(m.find() && macros.containsKey(m.group(1))) {
-						macros.remove(m.group(1));
-					}
-				}
-				
-				continue;
-			}
-			// How far is this line indented?
-			int level = 0;
-			for(int j = 0; j < line.length(); j++) {
-				if(line.charAt(j) == ' ')
-					level++;
-				else
-					break;
-			}
-			// Rebuild the path tree.
-			for(int j = pathTree.size(); j <= level; j++)
-				pathTree.add("");
-			pathTree.set(level, cleanPath(line.trim()));
-			if(pathTree.size() > level + 1)
-				for(int j = pathTree.size() - 1; j > level; j--)
-					pathTree.remove(j);
-			String fullPath = "";
-			for(String c : pathTree)
-				fullPath += c;
-			// Now, split it again, and rebuild it again, but only figure out how big the object itself is.
-			String[] divided = fullPath.split("\\/");
-			String affectedObjectPath = "";
-			for(int j = 0; j < divided.length; j++)
-			{
-				String item = divided[j];
-				if(item.isEmpty()) {
-					continue;
-				}
-				if(item.equalsIgnoreCase("static") || item.equalsIgnoreCase("global") || item.equalsIgnoreCase("tmp"))
-					continue;
-				if(item.equals("proc") || item.equals("verb") || item.equals("var")) {
-					break;
-				}
-				if(item.contains("=") || item.contains("(")) {
-					break;
-				}
-				affectedObjectPath += "/" + item;
-			}
-			ObjectTree.Item item = tree.getOrCreate(affectedObjectPath);
-			if(fullPath.contains("(") && fullPath.indexOf("(") < fullPath.lastIndexOf("/"))
-				continue;
-			fullPath = fullPath.replaceAll("/tmp", ""); // Let's avoid giving a shit about whether the var is tmp, static, or global.
-			fullPath = fullPath.replaceAll("/static", "");
-			fullPath = fullPath.replaceAll("/global", "");
-			// Parse the var definitions.
-			if(fullPath.contains("var/") || 
-					(fullPath.contains("=") && (!fullPath.contains("(") || fullPath.indexOf("(") > fullPath.indexOf("=")))) {
-				String[] split = Pattern.compile("=").split(fullPath, 2);
-				String varname = split[0].substring(split[0].lastIndexOf("/") + 1, split[0].length()).trim();
-				if(split.length > 1) {
-					String val = split[1].trim();
-					String origVal = "";
-					while(!origVal.equals(val)) {
-						origVal = val;
-						// Trust me, this is the fastest way to parse the macros.
-						Matcher m = Pattern.compile("(?<![\\d\\w\"])\\w+(?![\\d\\w\"])").matcher(val);
-						StringBuffer outVal = new StringBuffer();
-						while(m.find()) {
-							if(macros.containsKey(m.group(0)))
-								m.appendReplacement(outVal, macros.get(m.group(0)));
-							else
-								m.appendReplacement(outVal, m.group(0));
-						}
-						m.appendTail(outVal);
-						val = outVal.toString();
-					}
-					/*// Parse additions.
+
+        for (String line1 : lines) {
+            line = line1;
+            // Process #include, #define, and #undef
+            if (line.trim().startsWith("#")) {
+                line = line.trim();
+                if (line.startsWith("#include")) {
+                    String path = line.split("\"")[1];
+                    if (isMainFile) {
+                        lbl.setText(path);
+                    }
+                    if (path.endsWith(".dm") || path.endsWith(".dme")) {
+                        File includeFile = new File(file.getParentFile(), path);
+                        if (!includeFile.exists()) {
+                            System.err.println(file.getName() + " references a nonexistent file: " + includeFile.getAbsolutePath());
+                            continue;
+                        }
+                        ObjectTreeParser parser = new ObjectTreeParser(tree);
+                        parser.macros = macros;
+                        parser.doParse(includeFile, false);
+                    }
+                    if (isMainFile) {
+                        currentInclude++;
+                        //System.out.println("Obj tree progress: " + (currentInclude*100f)/includeCount);
+                        dpb.setValue(currentInclude);
+                    }
+                }
+                if (line.startsWith("#define")) {
+                    Matcher m = Pattern.compile("#define +([\\d\\w]+) +(.+)").matcher(line);
+                    if (m.find()) {
+                        macros.put(m.group(1), m.group(2).replace("$", "\\$"));
+                    }
+                }
+                if (line.startsWith("#undef")) {
+                    Matcher m = Pattern.compile("#undef[ \\t]*([\\d\\w]+)").matcher(line);
+                    if (m.find() && macros.containsKey(m.group(1))) {
+                        macros.remove(m.group(1));
+                    }
+                }
+
+                continue;
+            }
+            // How far is this line indented?
+            int level = 0;
+            for (int j = 0; j < line.length(); j++) {
+                if (line.charAt(j) == ' ')
+                    level++;
+                else
+                    break;
+            }
+            // Rebuild the path tree.
+            for (int j = pathTree.size(); j <= level; j++)
+                pathTree.add("");
+            pathTree.set(level, cleanPath(line.trim()));
+            if (pathTree.size() > level + 1)
+                for (int j = pathTree.size() - 1; j > level; j--)
+                    pathTree.remove(j);
+            String fullPath = "";
+            for (String c : pathTree)
+                fullPath += c;
+            // Now, split it again, and rebuild it again, but only figure out how big the object itself is.
+            String[] divided = fullPath.split("\\/");
+            String affectedObjectPath = "";
+            for (String item : divided) {
+                if (item.isEmpty()) {
+                    continue;
+                }
+                if (item.equalsIgnoreCase("static") || item.equalsIgnoreCase("global") || item.equalsIgnoreCase("tmp"))
+                    continue;
+                if (item.equals("proc") || item.equals("verb") || item.equals("var")) {
+                    break;
+                }
+                if (item.contains("=") || item.contains("(")) {
+                    break;
+                }
+                affectedObjectPath += "/" + item;
+            }
+            ObjectTree.Item item = tree.getOrCreate(affectedObjectPath);
+            if (fullPath.contains("(") && fullPath.indexOf("(") < fullPath.lastIndexOf("/"))
+                continue;
+            fullPath = fullPath.replaceAll("/tmp", ""); // Let's avoid giving a shit about whether the var is tmp, static, or global.
+            fullPath = fullPath.replaceAll("/static", "");
+            fullPath = fullPath.replaceAll("/global", "");
+            // Parse the var definitions.
+            if (fullPath.contains("var/") ||
+                    (fullPath.contains("=") && (!fullPath.contains("(") || fullPath.indexOf("(") > fullPath.indexOf("=")))) {
+                String[] split = Pattern.compile("=").split(fullPath, 2);
+                String varname = split[0].substring(split[0].lastIndexOf("/") + 1, split[0].length()).trim();
+                if (split.length > 1) {
+                    String val = split[1].trim();
+                    String origVal = "";
+                    while (!origVal.equals(val)) {
+                        origVal = val;
+                        // Trust me, this is the fastest way to parse the macros.
+                        Matcher m = Pattern.compile("(?<![\\d\\w\"])\\w+(?![\\d\\w\"])").matcher(val);
+                        StringBuffer outVal = new StringBuffer();
+                        while (m.find()) {
+                            if (macros.containsKey(m.group(0)))
+                                m.appendReplacement(outVal, macros.get(m.group(0)));
+                            else
+                                m.appendReplacement(outVal, m.group(0));
+                        }
+                        m.appendTail(outVal);
+                        val = outVal.toString();
+                    }
+                    /*// Parse additions.
 					Matcher m = Pattern.compile("([\\d\\.]+)[ \\t]*\\+[ \\t]*([\\d\\.]+)").matcher(val);
 					StringBuffer outVal = new StringBuffer();
 					while(m.find()) {
@@ -384,13 +380,13 @@ public class ObjectTreeParser {
 					}
 					m.appendTail(outVal);
 					val = outVal.toString();*/
-					
-					item.setVar(varname, val);
-				} else {
-					item.setVar(varname);
-				}
-			}
-		}
+
+                    item.setVar(varname, val);
+                } else {
+                    item.setVar(varname);
+                }
+            }
+        }
 		if(dlg != null)
 			dlg.setVisible(false);
 		
