@@ -22,7 +22,7 @@ public class DirectionalPlacementHandler implements PlacementHandler {
 	private int dirCount = 1;
 	private int usedDir;
 	private ObjInstance usedInstance;
-	Map<Integer, ObjInstance> dirToInstance = new HashMap<Integer, ObjInstance>();
+	Map<Integer, ObjInstance> dirToInstance = new HashMap<>();
 	@Override
 	public void init(FastDMM editor, ObjInstance instance, Location initialLocation) {
 		this.editor = editor;

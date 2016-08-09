@@ -31,7 +31,7 @@ public class DMI {
     public int rows = 1;
     public int cols = 1;
 
-    public Map<String, IconState> iconStates = new HashMap<String, IconState>();
+    public Map<String, IconState> iconStates = new HashMap<>();
     public IconState defaultState;
 
     public int glID = -1;
@@ -72,8 +72,7 @@ public class DMI {
             while (pngr.hasMoreRows()) {
                 ImageLineInt line = (ImageLineInt) pngr.readRow();
                 int[] linearr = line.getScanline();
-                for (int i = 0; i < linearr.length; i++) {
-                    int index = linearr[i];
+                for (int index : linearr) {
                     if (index < tlen) {
                         data[dataindex] = (int) (((long) trns.getPalletteAlpha()[index] << 24L) + (long) pal.getEntry(index));
                     } else {
@@ -120,7 +119,7 @@ public class DMI {
         String textMeta = pngr.getMetadata().getTxtForKey("Description");
         String[] lines = textMeta.split("(\\r\\n|\\r|\\n)");
         IconState currState = null;
-        List<IconState> statesList = new ArrayList<IconState>();
+        List<IconState> statesList = new ArrayList<>();
         for (String line : lines) {
             String[] kv = line.split("=");
             if (kv.length < 2)

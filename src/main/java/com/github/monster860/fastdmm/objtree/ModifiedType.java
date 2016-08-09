@@ -34,7 +34,7 @@ public class ModifiedType extends ObjInstance {
 		// This will match the type path (/blah/blah) and the var list (a = "b"; c = 123)
 		Matcher m = Pattern.compile("([\\w/]+)\\{(.*)\\}").matcher(s);
 		if(m.find()) {
-			Map<String,String> vars = new LinkedHashMap<String,String>();
+			Map<String,String> vars = new LinkedHashMap<>();
 			// This will match variable key-val
 			Matcher varmatcher = Pattern.compile("([\\w]+) ?= ?((?:\"(?:\\\\\"|[^\"])*\"|[^;])*)(?:$|;)").matcher(m.group(2));
 			while(varmatcher.find()) {
@@ -57,12 +57,12 @@ public class ModifiedType extends ObjInstance {
 	
 	public static final ModifiedType deriveFrom(ObjInstance i) {
 		if(i instanceof ObjectTree.Item){
-			ModifiedType mt = new ModifiedType(new TreeMap<String, String>(), i.typeString());
+			ModifiedType mt = new ModifiedType(new TreeMap<>(), i.typeString());
 			mt.parent = (ObjectTree.Item)i;
 			return mt;
 		} else {
 			ModifiedType p = (ModifiedType)i;
-			ModifiedType mt = new ModifiedType(new TreeMap<String, String>(p.vars), p.typeString());
+			ModifiedType mt = new ModifiedType(new TreeMap<>(p.vars), p.typeString());
 			mt.parent = p.parent;
 			return mt;
 		}
@@ -153,22 +153,14 @@ public class ModifiedType extends ObjInstance {
 		dialog.getContentPane().add(bottomPanel, BorderLayout.SOUTH);
 		
 		JButton okButton = new JButton("OK");
-		okButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				model.doReturnTrue = true;
-				dialog.setVisible(false);
-			}
-		});
+		okButton.addActionListener(e -> {
+            model.doReturnTrue = true;
+            dialog.setVisible(false);
+        });
 		bottomPanel.add(okButton, BorderLayout.WEST);
 		
 		JButton cancelButton = new JButton("Cancel");
-		cancelButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				dialog.setVisible(false);
-			}
-		});
+		cancelButton.addActionListener(e -> dialog.setVisible(false));
 		bottomPanel.add(cancelButton, BorderLayout.EAST);
 		
 		dialog.setLocationRelativeTo(editor);

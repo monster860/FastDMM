@@ -36,10 +36,10 @@ public class DMM {
 	public int maxZ = 1;
 	
 	public BiMap<String, TileInstance> instances = HashBiMap.create();
-	public Map<Location, String> map = new HashMap<Location, String>();
-	public List<String> unusedKeys = new ArrayList<String>();
+	public Map<Location, String> map = new HashMap<>();
+	public List<String> unusedKeys = new ArrayList<>();
 	
-	public Map<String, ModifiedType> modifiedTypes = new HashMap<String, ModifiedType>();
+	public Map<String, ModifiedType> modifiedTypes = new HashMap<>();
 	
 	public ObjectTree objTree;
 	
@@ -54,9 +54,9 @@ public class DMM {
 		String line = null;
 		String runOn = "";
 		int keyLen = 0;
-		Set<String> unusedKeysSet = new HashSet<String>();
+		Set<String> unusedKeysSet = new HashSet<>();
 		
-		Map<String, String> substitutions = new TreeMap<String, String>();
+		Map<String, String> substitutions = new TreeMap<>();
 		
 		while ((line = br.readLine()) != null) {
 			line = line.trim();
@@ -97,11 +97,9 @@ public class DMM {
 				}
 			}
 		}
-		for(String key : unusedKeysSet) {
-			unusedKeys.add(key);
-		}
+        unusedKeys.addAll(unusedKeysSet);
 		
-		Map<Location, String> reverseMap = new HashMap<Location, String>();
+		Map<Location, String> reverseMap = new HashMap<>();
 		
 		int partX = -1;
 		int partY = -1;
@@ -186,23 +184,14 @@ public class DMM {
 		PrintStream ps = new PrintStream(file);
 		if(isTGM)
 			ps.println("//MAP CONVERTED BY dmm2tgm.py THIS HEADER COMMENT PREVENTS RECONVERSION, DO NOT REMOVE "); // Space at the end is intentional
-		List<String> instancesList = new ArrayList<String>();
+		List<String> instancesList = new ArrayList<>();
 		for(Map.Entry<String, TileInstance> ent : instances.entrySet()) {
 			if(ent.getValue().refCount <= 0)
 				continue;
 			instancesList.add("\"" + ent.getKey() + "\" = (" + (isTGM ? ent.getValue().toStringTGM() : ent.getValue().toString()) + ")");
 		}
-		Collections.sort(instancesList, new Comparator<String>(){
-			@Override
-			public int compare(String a, String b) {
-				return reverseCase(a).compareTo(reverseCase(b));
-			}
-			
-		});
-		for(String s : instancesList) {
-			ps.println(s);
-		}
-		
+		Collections.sort(instancesList, (a, b) -> reverseCase(a).compareTo(reverseCase(b)));
+        instancesList.forEach(ps::println);
 		ps.println();
 		
 		if(!isTGM) {

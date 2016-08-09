@@ -29,7 +29,7 @@ public class MakeActiveObjectListener implements ActionListener {
 		synchronized(editor) {
 			editor.selectedObject = oInstance instanceof ObjectTree.Item ? (ObjectTree.Item)oInstance : ((ModifiedType)oInstance).parent;
 			editor.selectedInstance = oInstance;
-			List<Object> path = new LinkedList<Object>();
+			List<Object> path = new LinkedList<>();
 			ObjectTree.Item curr = editor.selectedObject;
 			while(curr != null && (curr.istype("/area") || curr.istype("/mob") || curr.istype("/obj") || curr.istype("/turf"))) {
 				path.add(0, curr);

@@ -29,7 +29,7 @@ public class TileInstance {
 		// This regex matches modified types: /blah/blah{a = "b"; c = 23}
 		try {
 			Matcher m = Pattern.compile("[\\w/]+(?:\\{(?:\"(?:\\\\\"|[^\"])*?\"|[^\\}])*?\\})?(?=,|$)").matcher(s);
-			List<ObjInstance> objs = new ArrayList<ObjInstance>();
+			List<ObjInstance> objs = new ArrayList<>();
 			while(m.find()) {
 				objs.add(ModifiedType.fromString(m.group(0), objTree, dmm));
 			}
@@ -69,45 +69,42 @@ public class TileInstance {
 	
 	public List<ObjInstance> getLayerSorted() {
 		if(cachedSorted == null) {
-			cachedSorted = new ArrayList<ObjInstance>(objs);
-			cachedSorted.sort(new Comparator<ObjInstance>(){
-				@Override
-				public int compare(ObjInstance a, ObjInstance b) {
-					try {
-						float layerA = Float.parseFloat(a.getVar("plane"));
-						float layerB = Float.parseFloat(b.getVar("plane"));
-						if(layerA == layerB) {
-							layerA = Float.parseFloat(a.getVar("layer"));
-							layerB = Float.parseFloat(b.getVar("layer"));
-						}
-						if(layerA == layerB) {
-							// Sort by type
-							if(a.typeString().startsWith("/turf"))
-								layerA = 1;
-							if(a.typeString().startsWith("/obj"))
-								layerA = 2;
-							if(a.typeString().startsWith("/mob"))
-								layerA = 3;
-							if(a.typeString().startsWith("/area"))
-								layerA = 4;
-							if(b.typeString().startsWith("/turf"))
-								layerB = 1;
-							if(b.typeString().startsWith("/obj"))
-								layerB = 2;
-							if(b.typeString().startsWith("/mob"))
-								layerB = 3;
-							if(b.typeString().startsWith("/area"))
-								layerB = 4;
-						}
-						return (int)Math.signum(layerA - layerB);
-					} catch (Exception e) {
-						if(a != null && b != null) {
-							System.out.println("Error with layers " + a.getVar("layer") + ", " + b.getVar("layer"));
-						}
-						return 0;
-					}
-				}
-			});
+			cachedSorted = new ArrayList<>(objs);
+			cachedSorted.sort((a, b) -> {
+                try {
+                    float layerA = Float.parseFloat(a.getVar("plane"));
+                    float layerB = Float.parseFloat(b.getVar("plane"));
+                    if(layerA == layerB) {
+                        layerA = Float.parseFloat(a.getVar("layer"));
+                        layerB = Float.parseFloat(b.getVar("layer"));
+                    }
+                    if(layerA == layerB) {
+                        // Sort by type
+                        if(a.typeString().startsWith("/turf"))
+                            layerA = 1;
+                        if(a.typeString().startsWith("/obj"))
+                            layerA = 2;
+                        if(a.typeString().startsWith("/mob"))
+                            layerA = 3;
+                        if(a.typeString().startsWith("/area"))
+                            layerA = 4;
+                        if(b.typeString().startsWith("/turf"))
+                            layerB = 1;
+                        if(b.typeString().startsWith("/obj"))
+                            layerB = 2;
+                        if(b.typeString().startsWith("/mob"))
+                            layerB = 3;
+                        if(b.typeString().startsWith("/area"))
+                            layerB = 4;
+                    }
+                    return (int)Math.signum(layerA - layerB);
+                } catch (Exception e) {
+                    if(a != null && b != null) {
+                        System.out.println("Error with layers " + a.getVar("layer") + ", " + b.getVar("layer"));
+                    }
+                    return 0;
+                }
+            });
 		}
 		return cachedSorted;
 	}
@@ -127,35 +124,32 @@ public class TileInstance {
 	
 	public void sortObjs() {
 		// Sort the object list in the order 
-		Collections.sort(objs, new Comparator<ObjInstance>() {
-			@Override
-			public int compare(ObjInstance a, ObjInstance b) {
-				int iA = 0;
-				int iB = 0;
-				if(a.istype("/obj"))
-					iA = 1;
-				else if(a.istype("/mob"))
-					iA = 2;
-				else if(a.istype("/turf"))
-					iA = 3;
-				else if(a.istype("/area"))
-					iA = 4;
-				if(b.istype("/obj"))
-					iB = 1;
-				else if(b.istype("/mob"))
-					iB = 2;
-				else if(b.istype("/turf"))
-					iB = 3;
-				else if(b.istype("/area"))
-					iB = 4;
-				return iA < iB ? -1 : (iA == iB ? 0 : 1);
-			}
-		});
+		Collections.sort(objs, (a, b) -> {
+            int iA = 0;
+            int iB = 0;
+            if(a.istype("/obj"))
+                iA = 1;
+            else if(a.istype("/mob"))
+                iA = 2;
+            else if(a.istype("/turf"))
+                iA = 3;
+            else if(a.istype("/area"))
+                iA = 4;
+            if(b.istype("/obj"))
+                iB = 1;
+            else if(b.istype("/mob"))
+                iB = 2;
+            else if(b.istype("/turf"))
+                iB = 3;
+            else if(b.istype("/area"))
+                iB = 4;
+            return iA < iB ? -1 : (iA == iB ? 0 : 1);
+        });
 	}
 	
 	// Modification functions. They do not modify the tile instance, they return the key pointing to the modified instance.
 	public String addObject(ObjInstance obj) {
-		TileInstance ti = new TileInstance(new ArrayList<ObjInstance>(objs), dmm);
+		TileInstance ti = new TileInstance(new ArrayList<>(objs), dmm);
 		if(obj.istype("/area")) {
 			for(int i = 0; i < ti.objs.size(); i++) {
 				ObjInstance cobj = ti.objs.get(i);
@@ -184,7 +178,7 @@ public class TileInstance {
 	
 	// Removes the bottom-most occurence of the obj.
 	public String removeObject(ObjInstance obj) {
-		TileInstance ti = new TileInstance(new ArrayList<ObjInstance>(objs), dmm);
+		TileInstance ti = new TileInstance(new ArrayList<>(objs), dmm);
 		ObjectTree.Item replacement = null;
 		if(obj.istype("/area"))
 			replacement = dmm.objTree.get(dmm.objTree.get("/world").getVar("area"));
@@ -198,7 +192,7 @@ public class TileInstance {
 	}
 	
 	public String moveObjToTop(ObjInstance obj) {
-		TileInstance ti = new TileInstance(new ArrayList<ObjInstance>(objs), dmm);
+		TileInstance ti = new TileInstance(new ArrayList<>(objs), dmm);
 		ti.objs.remove(obj);
 		ti.objs.add(obj);
 		ti.sortObjs();
@@ -206,7 +200,7 @@ public class TileInstance {
 	}
 	
 	public String moveObjToBottom(ObjInstance obj) {
-		TileInstance ti = new TileInstance(new ArrayList<ObjInstance>(objs), dmm);
+		TileInstance ti = new TileInstance(new ArrayList<>(objs), dmm);
 		ti.objs.remove(obj);
 		ti.objs.add(0, obj);
 		ti.sortObjs();
@@ -215,7 +209,7 @@ public class TileInstance {
 	
 	// Replaces the bottom-most occurence of the obj. 
 	public String replaceObject(ObjInstance objA, ObjInstance objB) {
-		TileInstance ti = new TileInstance(new ArrayList<ObjInstance>(objs), dmm);
+		TileInstance ti = new TileInstance(new ArrayList<>(objs), dmm);
 		ti.objs.set(ti.objs.indexOf(objA), objB);
 		return dmm.getKeyForInstance(ti);
 	}

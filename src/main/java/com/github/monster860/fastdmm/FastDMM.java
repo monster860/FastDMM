@@ -129,103 +129,98 @@ public class FastDMM extends JFrame implements ActionListener, TreeSelectionList
 	}
 	
 	public void initSwing() {
-		SwingUtilities.invokeLater(new Runnable(){
-			public void run() {
-				setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-				canvas = new Canvas();
-				
-				ToolTipManager.sharedInstance().setLightWeightPopupEnabled(false);
-				
-				leftPanel = new JPanel();
-				leftPanel.setLayout(new BorderLayout());
-				leftPanel.setSize(350, 1);
-				leftPanel.setPreferredSize(leftPanel.getSize());
-				
-				instancesPanel = new JPanel();
-				instancesPanel.setLayout(new BorderLayout());
-				
-				instancesVis = new JList<ObjInstance>();
-				instancesVis.addListSelectionListener(FastDMM.this);
-				instancesVis.setLayoutOrientation(JList.VERTICAL);
-				instancesVis.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-				ToolTipManager.sharedInstance().registerComponent(instancesVis);
-				instancesVis.setCellRenderer(new InstancesRenderer(FastDMM.this));
-				instancesPanel.add(new JScrollPane(instancesVis));
-				
-				objTreePanel = new JPanel();
-				objTreePanel.setLayout(new BorderLayout());
-				
-				objTreeVis = new JTree(new NoDmeTreeModel());
-				objTreeVis.addTreeSelectionListener(FastDMM.this);
-				ToolTipManager.sharedInstance().registerComponent(objTreeVis);
-				objTreeVis.setCellRenderer(new ObjectTreeRenderer(FastDMM.this));
-				objTreePanel.add(new JScrollPane(objTreeVis));
-				
-				leftTabs = new JTabbedPane();
-				leftTabs.addTab("Objects", objTreePanel);
-				leftTabs.addTab("Instances", instancesPanel);
-				leftPanel.add(leftTabs, BorderLayout.CENTER);
-				
-				getContentPane().add(canvas, BorderLayout.CENTER);
-				getContentPane().add(leftPanel, BorderLayout.WEST);
-				
-				setSize(1280, 720);
-				setPreferredSize(getSize());
-				pack();
-				
-				menuBar = new JMenuBar();
-				
-				JMenu menu = new JMenu("File");
-				menu.setMnemonic(KeyEvent.VK_O);
-				menuBar.add(menu);
-				
-				menuItemOpen = new JMenuItem("Open");
-				menuItemOpen.setActionCommand("open");
-				menuItemOpen.addActionListener(FastDMM.this);
-				menuItemOpen.setEnabled(false);
-				menu.add(menuItemOpen);
-				
-				menuItemSave = new JMenuItem("Save");
-				menuItemSave.setActionCommand("save");
-				menuItemSave.addActionListener(FastDMM.this);
-				menuItemSave.setEnabled(false);
-				menu.add(menuItemSave);
-				
-				JMenuItem menuItem = new JMenuItem("Open DME");
-				menuItem.setActionCommand("open_dme");
-				menuItem.addActionListener(FastDMM.this);
-				menu.add(menuItem);
-				
-				menu = new JMenu("Options");
-				menu.setMnemonic(KeyEvent.VK_O);
-				menuBar.add(menu);
-				
-				menuItem = new JMenuItem("Change Filters", KeyEvent.VK_F);
-				menuItem.setActionCommand("change_filters");
-				menuItem.addActionListener(FastDMM.this);
-				menu.add(menuItem);
-				
-				setJMenuBar(menuBar);
-				
-				filters = new TreeSet<String>();
-				filters.add("/obj");
-				filters.add("/turf");
-				filters.add("/mob");
-				filters.add("/area");
-				
-				// Yes, there's a good reason input is being handled in 2 places:
-				// For some reason, this doesn't work when the LWJGL Canvas is in focus.
-				KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventPostProcessor(new KeyEventPostProcessor(){
-					@Override
-					public boolean postProcessKeyEvent(KeyEvent e) {
-						isCtrlPressed = e.isControlDown();
-						isShiftPressed = e.isShiftDown();
-						isAltPressed = e.isAltDown();
-						return false;
-					}
-				});
-			}
-		});
+		SwingUtilities.invokeLater(() -> {
+            setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            canvas = new Canvas();
+
+            ToolTipManager.sharedInstance().setLightWeightPopupEnabled(false);
+
+            leftPanel = new JPanel();
+            leftPanel.setLayout(new BorderLayout());
+            leftPanel.setSize(350, 1);
+            leftPanel.setPreferredSize(leftPanel.getSize());
+
+            instancesPanel = new JPanel();
+            instancesPanel.setLayout(new BorderLayout());
+
+            instancesVis = new JList<>();
+            instancesVis.addListSelectionListener(FastDMM.this);
+            instancesVis.setLayoutOrientation(JList.VERTICAL);
+            instancesVis.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+            ToolTipManager.sharedInstance().registerComponent(instancesVis);
+            instancesVis.setCellRenderer(new InstancesRenderer(FastDMM.this));
+            instancesPanel.add(new JScrollPane(instancesVis));
+
+            objTreePanel = new JPanel();
+            objTreePanel.setLayout(new BorderLayout());
+
+            objTreeVis = new JTree(new NoDmeTreeModel());
+            objTreeVis.addTreeSelectionListener(FastDMM.this);
+            ToolTipManager.sharedInstance().registerComponent(objTreeVis);
+            objTreeVis.setCellRenderer(new ObjectTreeRenderer(FastDMM.this));
+            objTreePanel.add(new JScrollPane(objTreeVis));
+
+            leftTabs = new JTabbedPane();
+            leftTabs.addTab("Objects", objTreePanel);
+            leftTabs.addTab("Instances", instancesPanel);
+            leftPanel.add(leftTabs, BorderLayout.CENTER);
+
+            getContentPane().add(canvas, BorderLayout.CENTER);
+            getContentPane().add(leftPanel, BorderLayout.WEST);
+
+            setSize(1280, 720);
+            setPreferredSize(getSize());
+            pack();
+
+            menuBar = new JMenuBar();
+
+            JMenu menu = new JMenu("File");
+            menu.setMnemonic(KeyEvent.VK_O);
+            menuBar.add(menu);
+
+            menuItemOpen = new JMenuItem("Open");
+            menuItemOpen.setActionCommand("open");
+            menuItemOpen.addActionListener(FastDMM.this);
+            menuItemOpen.setEnabled(false);
+            menu.add(menuItemOpen);
+
+            menuItemSave = new JMenuItem("Save");
+            menuItemSave.setActionCommand("save");
+            menuItemSave.addActionListener(FastDMM.this);
+            menuItemSave.setEnabled(false);
+            menu.add(menuItemSave);
+
+            JMenuItem menuItem = new JMenuItem("Open DME");
+            menuItem.setActionCommand("open_dme");
+            menuItem.addActionListener(FastDMM.this);
+            menu.add(menuItem);
+
+            menu = new JMenu("Options");
+            menu.setMnemonic(KeyEvent.VK_O);
+            menuBar.add(menu);
+
+            menuItem = new JMenuItem("Change Filters", KeyEvent.VK_F);
+            menuItem.setActionCommand("change_filters");
+            menuItem.addActionListener(FastDMM.this);
+            menu.add(menuItem);
+
+            setJMenuBar(menuBar);
+
+            filters = new TreeSet<>();
+            filters.add("/obj");
+            filters.add("/turf");
+            filters.add("/mob");
+            filters.add("/area");
+
+            // Yes, there's a good reason input is being handled in 2 places:
+            // For some reason, this doesn't work when the LWJGL Canvas is in focus.
+            KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventPostProcessor(e -> {
+isCtrlPressed = e.isControlDown();
+isShiftPressed = e.isShiftDown();
+isAltPressed = e.isAltDown();
+return false;
+});
+        });
 	}
 	
 	@Override
@@ -306,7 +301,7 @@ public class FastDMM extends JFrame implements ActionListener, TreeSelectionList
 			}
 		} else if ("open".equals(e.getActionCommand())) {
 			List<File> dmms = getDmmFiles(dme.getParentFile());
-			JList<File> dmmList = new JList<File>(dmms.toArray(new File[dmms.size()]));
+			JList<File> dmmList = new JList<>(dmms.toArray(new File[dmms.size()]));
 			
 			if(JOptionPane.showConfirmDialog(canvas, new JScrollPane(dmmList), "Select a DMM", JOptionPane.OK_CANCEL_OPTION) == JOptionPane.CANCEL_OPTION)
 				return;
@@ -344,7 +339,7 @@ public class FastDMM extends JFrame implements ActionListener, TreeSelectionList
 	}
 	
 	public static List<File> getDmmFiles(File directory) {
-		List<File> l = new ArrayList<File>();
+		List<File> l = new ArrayList<>();
 		for(File f : directory.listFiles()) {
 			if(f.getName().endsWith(".dmm") || f.getName().endsWith(".dmp")) {
 				l.add(f);
@@ -376,7 +371,7 @@ public class FastDMM extends JFrame implements ActionListener, TreeSelectionList
 		}
 	}
 	
-	private Map<String, DMI> dmis = new HashMap<String, DMI>();
+	private Map<String, DMI> dmis = new HashMap<>();
 	public DMI interface_dmi;
 	
 	public DMI getDmi(String name, boolean doInitGL) {
@@ -584,7 +579,7 @@ public class FastDMM extends JFrame implements ActionListener, TreeSelectionList
 	        hasLoadedImageThisFrame = false;
 	        
 	        int currCreationIndex = 0;
-	        Set<RenderInstance> rendInstanceSet = new TreeSet<RenderInstance>();
+	        Set<RenderInstance> rendInstanceSet = new TreeSet<>();
 	        Location l = new Location(1, 1, 1);
 	        if(dme != null && dmm != null) {
 	        	synchronized(this) {
