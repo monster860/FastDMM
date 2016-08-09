@@ -621,7 +621,7 @@ return false;
 			        		int dirs = 0;
 			        		for(int i = 0; i < 4; i++) {
 			        			int cdir = IconState.indexToDirArray[i];
-			        			Location l2 = l.get_step(cdir);
+			        			Location l2 = l.getStep(cdir);
 			        			String instId = dmm.map.get(l2);
 			        			if(instId == null) {
 			        				dirs |= cdir;
