@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/monster860/FastDMM.png)](https://travis-ci.org/monster860/FastDMM)
+
 # FastDMM
 
 FastDMM is an alternative map editor for BYOND that is designed to be more flexible.
