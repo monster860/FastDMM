@@ -14,7 +14,7 @@ FastDMM is an alternative map editor for BYOND that is designed to be more flexi
 
 # Requirements
 
-- FastDMM requires Java 7 to be installed.
+- FastDMM requires Java 8 to be installed.
 
 # Usage
 
