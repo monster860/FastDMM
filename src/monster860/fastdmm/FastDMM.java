@@ -37,6 +37,7 @@ import monster860.fastdmm.editing.DefaultPlacementHandler;
 import monster860.fastdmm.editing.DeleteListener;
 import monster860.fastdmm.editing.DirectionalPlacementHandler;
 import monster860.fastdmm.editing.EditVarsListener;
+import monster860.fastdmm.editing.MakeActiveObjectListener;
 import monster860.fastdmm.editing.MoveToBottomListener;
 import monster860.fastdmm.editing.MoveToTopListener;
 import monster860.fastdmm.editing.NoDmeTreeModel;
@@ -79,8 +80,8 @@ public class FastDMM extends JFrame implements ActionListener, TreeSelectionList
 	
 	private JPopupMenu currPopup;
 	
-	private JTree objTreeVis;
-	private JList<ObjInstance> instancesVis;
+	public JTree objTreeVis;
+	public JList<ObjInstance> instancesVis;
 	
 	SortedSet<String> filters;
 	public ObjectTree objTree;
@@ -525,12 +526,16 @@ public class FastDMM extends JFrame implements ActionListener, TreeSelectionList
 								menu.setFont(menu.getFont().deriveFont(Font.BOLD)); // Make it bold if is visible by the filter.
 							currPopup.add(menu);
 							
-							JMenuItem item = new JMenuItem("View Variables");
-							item.addActionListener(new EditVarsListener(this, l, i));
+							JMenuItem item = new JMenuItem("Make Active Object");
+							item.addActionListener(new MakeActiveObjectListener(this, l, i));
 							menu.add(item);
 							
 							item = new JMenuItem("Delete");
 							item.addActionListener(new DeleteListener(this, l, i));
+							menu.add(item);
+							
+							item = new JMenuItem("View Variables");
+							item.addActionListener(new EditVarsListener(this, l, i));
 							menu.add(item);
 							
 							item = new JMenuItem("Move to Top");
