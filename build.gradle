@@ -8,7 +8,7 @@ apply plugin: 'application'
 
 group 'com.github.monster860'
 version '1.0-SNAPSHOT'
-sourceCompatibility = 1.8
+def javaLevel = 1.8
 def mainClass = 'com.github.monster860.fastdmm.FastDMM'
 def nativePaths = ['windows', 'linux', 'osx'].collect { 'build/natives/' + it }
 
@@ -36,6 +36,12 @@ run {
     systemProperty 'java.library.path', files(nativePaths).asPath
 }
 
+// Set the correct java version.
+sourceCompatibility = targetCompatibility = javaLevel
+
+// Ensure capsule works when people have weird java installations.
+def minimumJavaVersion = javaLevel + '.0'
+
 // Ensure that the natives are unpacked when someone tries to run "gradlew run"
 tasks.run.dependsOn(unpackNatives)
 
@@ -58,7 +64,7 @@ task fatCapsule(type: FatCapsule, dependsOn: [jar, unpackNatives]) {
     from(nativePaths)
 
     capsuleManifest {
-        minJavaVersion = 1.8
+        minJavaVersion = minimumJavaVersion
     }
 }
 
