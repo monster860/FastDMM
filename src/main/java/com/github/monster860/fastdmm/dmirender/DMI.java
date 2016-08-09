@@ -7,7 +7,6 @@ import ar.com.hjg.pngj.chunks.PngChunkPLTE;
 import ar.com.hjg.pngj.chunks.PngChunkTRNS;
 import com.google.common.io.Files;
 import org.lwjgl.BufferUtils;
-import org.lwjgl.Sys;
 import org.lwjgl.opengl.GL12;
 
 import java.awt.image.BufferedImage;

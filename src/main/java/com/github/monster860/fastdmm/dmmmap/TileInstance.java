@@ -1,8 +1,5 @@
 package com.github.monster860.fastdmm.dmmmap;
 
-import static org.lwjgl.opengl.GL11.GL_TEXTURE_2D;
-import static org.lwjgl.opengl.GL11.glBindTexture;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;

@@ -1,7 +1,6 @@
 package com.github.monster860.fastdmm.objtree;
 
 import java.awt.BorderLayout;
-import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.*;
@@ -9,13 +8,9 @@ import java.util.regex.*;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
-import javax.swing.JTextArea;
-import javax.swing.event.TableModelListener;
-import javax.swing.table.TableModel;
 
 import com.github.monster860.fastdmm.FastDMM;
 import com.github.monster860.fastdmm.dmmmap.DMM;
