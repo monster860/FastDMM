@@ -70,18 +70,18 @@ public class IconSubstate implements Icon {
 	
 	Scaled cachedScaled;
 	
-	public Icon getScaled(Component c) {
+	public Icon getScaled() {
 		if(cachedScaled == null)
-			cachedScaled = new Scaled(this, c);
+			cachedScaled = new Scaled(this);
 		return cachedScaled;
 	}
 	
 	public static class Scaled implements Icon {
 		IconSubstate parent;
-		float scalingFactor = 1;
-		public Scaled(IconSubstate parent, Component c) {
+		float scalingFactor = .5f;
+		public Scaled(IconSubstate parent) {
 			this.parent = parent;
-			scalingFactor = (float)c.getPreferredSize().getHeight() / (float)parent.dmi.height;
+			scalingFactor = 16f / parent.dmi.height;
 		}
 		
 		@Override

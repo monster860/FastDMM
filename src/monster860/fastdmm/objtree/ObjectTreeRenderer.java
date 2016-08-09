@@ -30,7 +30,7 @@ public class ObjectTreeRenderer extends DefaultTreeCellRenderer {
 			if(dmi != null) {
 				String iconState = item.getIconState();
 				IconSubstate substate = dmi.getIconState(iconState).getSubstate(item.getDir());
-				setIcon(substate.getScaled(this));
+				setIcon(substate.getScaled());
 			} else {
 				setIcon(null);
 			}

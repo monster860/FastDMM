@@ -197,6 +197,22 @@ public class TileInstance {
 		return dmm.getKeyForInstance(ti);
 	}
 	
+	public String moveObjToTop(ObjInstance obj) {
+		TileInstance ti = new TileInstance(new ArrayList<ObjInstance>(objs), dmm);
+		ti.objs.remove(obj);
+		ti.objs.add(obj);
+		ti.sortObjs();
+		return dmm.getKeyForInstance(ti);
+	}
+	
+	public String moveObjToBottom(ObjInstance obj) {
+		TileInstance ti = new TileInstance(new ArrayList<ObjInstance>(objs), dmm);
+		ti.objs.remove(obj);
+		ti.objs.add(0, obj);
+		ti.sortObjs();
+		return dmm.getKeyForInstance(ti);
+	}
+	
 	// Replaces the bottom-most occurence of the obj. 
 	public String replaceObject(ObjInstance objA, ObjInstance objB) {
 		TileInstance ti = new TileInstance(new ArrayList<ObjInstance>(objs), dmm);
