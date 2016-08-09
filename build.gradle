@@ -1,0 +1,73 @@
+plugins {
+    id 'com.stehno.natives' version '0.2.4'
+    id 'us.kirchmeier.capsule' version '1.0.2'
+}
+
+apply plugin: 'java'
+apply plugin: 'application'
+
+group 'com.github.monster860'
+version '1.0-SNAPSHOT'
+def javaLevel = 1.8
+def mainClass = 'com.github.monster860.fastdmm.FastDMM'
+def nativePaths = ['windows', 'linux', 'osx'].collect { 'build/natives/' + it }
+
+repositories {
+    mavenCentral()
+    maven { url 'https://jitpack.io' }
+    maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
+}
+
+dependencies {
+    compile group: 'com.github.leonbloy', name: 'pngj', version: '-SNAPSHOT'
+    compile group: 'com.google.guava', name: 'guava', version: '19.0'
+    compile group: 'jline', name: 'jline', version: '2.12.1'
+    compile group: 'org.lwjgl.lwjgl', name: 'lwjgl', version: '2.9.3'
+    compile group: 'org.lwjgl.lwjgl', name: 'lwjgl_util', version: '2.9.3'
+    compileOnly group: 'org.projectlombok', name: 'lombok', version: '1.16.10'
+    testCompile group: 'junit', name: 'junit', version: '4.11'
+}
+natives {
+    jars = configurations.compile.files.collect { it.name }.findAll { it ==~ /.*-natives-.*/ }
+}
+
+run {
+    mainClassName = mainClass
+    systemProperty 'java.library.path', files(nativePaths).asPath
+}
+
+// Set the correct java version.
+sourceCompatibility = targetCompatibility = javaLevel
+
+// Ensure capsule works when people have weird java installations.
+def minimumJavaVersion = javaLevel + '.0'
+
+// Ensure that the natives are unpacked when someone tries to run "gradlew run"
+tasks.run.dependsOn(unpackNatives)
+
+// Below is the configuration that handles the far jar.
+
+configurations { fatCapsule }
+
+dependencies { fatCapsule 'co.paralleluniverse:capsule:0.10.1-SNAPSHOT' }
+
+task fatCapsule(type: FatCapsule, dependsOn: [jar, unpackNatives]) {
+    capsuleConfiguration = configurations.fatCapsule
+
+    // Application jar is embedded through applicationSource default value
+    applicationClass mainClassName
+
+    // Embed application dependencies
+    embedConfiguration = configurations.runtime { exclude '*-natives-*' }
+
+    // Copy native libraries to capsule root
+    from(nativePaths)
+
+    capsuleManifest {
+        minJavaVersion = minimumJavaVersion
+    }
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '2.14.1'
+}
