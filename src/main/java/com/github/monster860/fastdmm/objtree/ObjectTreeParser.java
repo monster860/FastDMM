@@ -1,5 +1,7 @@
 package com.github.monster860.fastdmm.objtree;
 
+import com.github.monster860.fastdmm.Util;
+
 import java.awt.BorderLayout;
 import java.io.BufferedReader;
 import java.io.File;
@@ -271,7 +273,7 @@ public class ObjectTreeParser {
                         lbl.setText(path);
                     }
                     if (path.endsWith(".dm") || path.endsWith(".dme")) {
-                        File includeFile = new File(file.getParentFile(), path);
+                        File includeFile = new File(file.getParentFile(), Util.separatorsToSystem(path));
                         if (!includeFile.exists()) {
                             System.err.println(file.getName() + " references a nonexistent file: " + includeFile.getAbsolutePath());
                             continue;
@@ -282,7 +284,6 @@ public class ObjectTreeParser {
                     }
                     if (isMainFile) {
                         currentInclude++;
-                        //System.out.println("Obj tree progress: " + (currentInclude*100f)/includeCount);
                         dpb.setValue(currentInclude);
                     }
                 }

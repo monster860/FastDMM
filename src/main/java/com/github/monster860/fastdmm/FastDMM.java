@@ -43,6 +43,7 @@ import com.github.monster860.fastdmm.objtree.ObjectTreeParser;
 import com.github.monster860.fastdmm.objtree.ObjectTreeRenderer;
 
 import org.lwjgl.LWJGLException;
+import org.lwjgl.Sys;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.*;
@@ -383,7 +384,7 @@ return false;
 			DMI dmi = null;
 			try {
 				if(name != null && name.trim().length() > 0) {
-					dmi = new DMI(new File(dme.getParentFile(), name));
+					dmi = new DMI(new File(dme.getParentFile(), Util.separatorsToSystem(name)));
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
