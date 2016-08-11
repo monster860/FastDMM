@@ -25,6 +25,7 @@ public class DMM {
 	int stringDepth = 0;
 	int stringExpDepth = 0;
 	int parenthesesDepth = 0;
+	int[] arrayDepth = new int[50];
 	
 	public FastDMM editor;
 	
@@ -274,7 +275,7 @@ public class DMM {
 	
 	public String stripComments(String s)
 	{
-		String o = "";
+		StringBuilder o = new StringBuilder();
 		for(int i = 0; i < s.length(); i++) {
 			char pC = ' ';
 			if(i - 1 >= 0)
@@ -287,27 +288,31 @@ public class DMM {
 			if(i + 1 < s.length())
 				nC = s.charAt(i + 1);
 			if(!isCommenting) {
-				if(c == '"' && stringDepth == stringExpDepth) {
-					stringDepth++;
-				}
-				if(c == '"' && (pC != '\\' || ppC == '\\') && stringDepth != stringExpDepth) {
-					stringDepth--;
-				}
-				if(c == '[' && (pC != '\\' || ppC == '\\') && stringDepth != stringExpDepth)
-					stringExpDepth++;
-				if(c == ']' && stringDepth > 0 && stringDepth == stringExpDepth)
-					stringExpDepth--;
 				if(c == '/' && nC == '/' && stringDepth == 0)
 					break;
 				if(c == '/' && nC == '*' && stringDepth == 0) {
 					isCommenting = true;
 					continue;
 				}
+				if(c == '"' && (pC != '\\' || ppC == '\\') && stringDepth != stringExpDepth) {
+					stringDepth--;
+				} else if(c == '"' && stringDepth == stringExpDepth) {
+					stringDepth++;
+				}
+				if(c == '[' && stringDepth == stringExpDepth)
+					arrayDepth[stringExpDepth]++;
+				else if(c == '[' && (pC != '\\' || ppC == '\\') && stringDepth != stringExpDepth)
+					stringExpDepth++;
+				
+				if(c == ']' && arrayDepth[stringExpDepth] != 0)
+					arrayDepth[stringExpDepth]--;
+				else if(c == ']' && stringDepth > 0 && stringDepth == stringExpDepth)
+					stringExpDepth--;
 				if(c == '(' && stringDepth == stringExpDepth)
 					parenthesisDepth++;
 				if(c == ')' && stringDepth == stringExpDepth)
 					parenthesisDepth--;
-				o += c;
+				o.append(c);
 			}
 			else {
 				if(c == '*' && nC == '/') {
@@ -317,6 +322,6 @@ public class DMM {
 			}
 				
 		}
-		return o;
+		return o.toString();
 	}
 }
