@@ -404,10 +404,6 @@ return false;
 		float ypos = Display.getHeight() - Mouse.getY();
 		double dx = Mouse.getDX();
 		double dy = -Mouse.getDY();
-		if(Mouse.isButtonDown(2)) {
-			viewportX -= (dx / viewportZoom);
-			viewportY += (dy / viewportZoom);
-		}
 		
 		if(dmm == null) {
 			viewportX = 0;
@@ -443,23 +439,30 @@ return false;
 				if(Keyboard.getEventKey() == Keyboard.KEY_LCONTROL || Keyboard.getEventKey() == Keyboard.KEY_RCONTROL)
 					isCtrlPressed = true;
 				if(Keyboard.getEventKey() == Keyboard.KEY_LSHIFT || Keyboard.getEventKey() == Keyboard.KEY_RSHIFT)
-					isCtrlPressed = true;
+					isShiftPressed = true;
 				if(Keyboard.getEventKey() == Keyboard.KEY_LMENU || Keyboard.getEventKey() == Keyboard.KEY_RMENU)
-					isCtrlPressed = true;
+					isAltPressed = true;
 			} else {
 				if(Keyboard.getEventKey() == Keyboard.KEY_LCONTROL || Keyboard.getEventKey() == Keyboard.KEY_RCONTROL)
 					isCtrlPressed = false;
 				if(Keyboard.getEventKey() == Keyboard.KEY_LSHIFT || Keyboard.getEventKey() == Keyboard.KEY_RSHIFT)
-					isCtrlPressed = false;
+					isShiftPressed = false;
 				if(Keyboard.getEventKey() == Keyboard.KEY_LMENU || Keyboard.getEventKey() == Keyboard.KEY_RMENU)
-					isCtrlPressed = false;
+					isAltPressed = false;
 			}
+		}
+		
+		if(Mouse.isButtonDown(2) || (Mouse.isButtonDown(0) && isAltPressed)) {
+			viewportX -= (dx / viewportZoom);
+			viewportY += (dy / viewportZoom);
 		}
 		
 		if(dmm == null || dme == null)
 			return;
 		
 		while(Mouse.next()) {
+			if(isAltPressed)
+				continue;
 			if(Mouse.getEventButtonState()) {
 				if(currPopup != null && !currPopup.isVisible())
 					currPopup = null;
