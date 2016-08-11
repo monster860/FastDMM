@@ -162,6 +162,17 @@ public class DMI {
                     break;
             }
         }
+        
+        // Old-ish format support.
+        if(statesList.size() > 1 && width == info.cols && height == info.rows) {
+        	int frameCount = 0;
+        	for(IconState i : statesList) {
+        		frameCount += i.dirCount * i.frameCount;
+        	}
+        	width = info.cols / frameCount;
+        	cols = frameCount;
+        }
+        
         // No icon data? Make one icon state.
         if (statesList.size() <= 0) {
             currState = new IconState("");
