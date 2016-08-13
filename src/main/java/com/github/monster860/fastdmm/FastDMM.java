@@ -222,8 +222,9 @@ return false;
 	public void valueChanged(TreeSelectionEvent arg0) {
 		if(arg0.getPath().getLastPathComponent() instanceof ObjectTree.Item) {
 			selectedObject = (ObjectTree.Item)arg0.getPath().getLastPathComponent();
-			selectedInstance = selectedObject;
 			instancesVis.setModel(selectedObject);
+			selectedInstance = selectedObject;
+			instancesVis.setSelectedValue(selectedInstance, true);
 		}
 	}
 	

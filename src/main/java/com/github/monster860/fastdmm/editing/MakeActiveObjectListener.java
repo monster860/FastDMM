@@ -38,6 +38,7 @@ public class MakeActiveObjectListener implements ActionListener {
 			path.add(0, editor.objTree);
 				
 			editor.objTreeVis.setSelectionPath(new TreePath(path.toArray()));
+			editor.instancesVis.setModel(editor.selectedObject);
 			editor.instancesVis.setSelectedValue(editor.selectedInstance, true);
 		}
 	}
