@@ -7,6 +7,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -290,7 +291,19 @@ public class ObjectTreeParser {
                 if (line.startsWith("#define")) {
                     Matcher m = Pattern.compile("#define +([\\d\\w]+) +(.+)").matcher(line);
                     if (m.find()) {
-                        macros.put(m.group(1), m.group(2).replace("$", "\\$"));
+						String group = m.group(1);
+						if (group.equals("FILE_DIR")) {
+							Matcher quotes = Pattern.compile("^\"(.*)\"$").matcher(m.group(2));
+							if (quotes.find()) {
+								// 2 ways this can't happen:
+								// Somebody intentionally placed broken FILE_DIR defines.
+								// It's the . FILE_DIR, which has no quotes, and we don't need.
+								tree.fileDirs.add(Paths.get(Util.separatorsToSystem(quotes.group(1))));
+							}
+
+						} else {
+							macros.put(m.group(1), m.group(2).replace("$", "\\$"));
+						}
                     }
                 }
                 if (line.startsWith("#undef")) {
