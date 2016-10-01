@@ -36,6 +36,7 @@ public class DMM {
 	public int maxY = 1;
 	public int maxZ = 1;
 	
+	public int keyLen = 0;
 	public BiMap<String, TileInstance> instances = HashBiMap.create();
 	public Map<Location, String> map = new HashMap<>();
 	public List<String> unusedKeys = new ArrayList<>();
@@ -51,10 +52,19 @@ public class DMM {
 		this.file = file;
 		this.editor = editor;
 		this.objTree = objTree;
+		if(!file.exists()) {
+			
+			Set<String> unusedKeysSet = new TreeSet<>();
+			generateKeys(keyLen, "", unusedKeysSet);
+			unusedKeys = new ArrayList<>(unusedKeysSet);
+			
+			keyLen = 1;
+			
+			return;
+		}
 		BufferedReader br = new BufferedReader(new FileReader(file));
 		String line = null;
 		String runOn = "";
-		int keyLen = 0;
 		Set<String> unusedKeysSet = new HashSet<>();
 		
 		Map<String, String> substitutions = new TreeMap<>();
@@ -182,6 +192,12 @@ public class DMM {
 	}
 	
 	public void save() throws FileNotFoundException {
+		if(!file.exists())
+			try {
+				file.createNewFile();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		PrintStream ps = new PrintStream(file);
 		if(isTGM)
 			ps.println("//MAP CONVERTED BY dmm2tgm.py THIS HEADER COMMENT PREVENTS RECONVERSION, DO NOT REMOVE "); // Space at the end is intentional
@@ -247,6 +263,8 @@ public class DMM {
 		if(instances.inverse().containsKey(ti)) {
 			return instances.inverse().get(ti);
 		}
+		if(unusedKeys.size() == 0)
+			expandKeys();
 		if(unusedKeys.size() > 0) {
 			// Picking a key randomly reduces chances of merge conflicts, especially if this map editor is used a lot over time.
 			// And we all know how much of a pain *those* are.
@@ -270,6 +288,68 @@ public class DMM {
 		}
 		for(char c = 'A'; c <= 'Z'; c++) {
 			generateKeys(length - 1, prefix + c, set);
+		}
+	}
+	
+	// All warranties on merge conflicts and diff size are now void if you call this method.
+	public void expandKeys() {
+		keyLen++;
+		Set<String> unusedKeysSet = new TreeSet<>();
+		generateKeys(keyLen, "", unusedKeysSet);
+		unusedKeys = new ArrayList<>(unusedKeysSet);
+		BiMap<String, TileInstance> newInstances = HashBiMap.create();
+		Map<Location, String> newMap = new HashMap<>();
+		Map<String, String> substitutions = new HashMap<>();
+		for(Map.Entry<String, TileInstance> instance : instances.entrySet()) {
+			String newKey = unusedKeys.get(rand.nextInt(unusedKeys.size()));
+			unusedKeys.remove(newKey);
+			substitutions.put(instance.getKey(), newKey);
+			newInstances.put(newKey, instance.getValue());
+		}
+		for(Map.Entry<Location, String> mapInst : map.entrySet()) {
+			newMap.put(mapInst.getKey(), substitutions.get(mapInst.getValue()));
+		}
+		
+		instances = newInstances;
+		map = newMap;
+	}
+	
+	public void setSize(int nMinX, int nMinY, int nMinZ, int nMaxX, int nMaxY, int nMaxZ) {
+		minX = nMinX;
+		minY = nMinY;
+		minZ = nMinZ;
+		maxX = nMaxX;
+		maxY = nMaxY;
+		maxZ = nMaxZ;
+		
+		ObjectTree.Item world = objTree.get("/world");
+		if(world == null)
+			return;
+		
+		TileInstance ti = TileInstance.fromString(world.getVar("turf") + ", " + world.getVar("area"), objTree, this);
+		String defaultInst = getKeyForInstance(ti);
+		
+		Set<Location> toRemove = new HashSet<>();
+		for(Map.Entry<Location, String> mapInst : map.entrySet()) {
+			Location l = mapInst.getKey();
+			// In range? Don't remove then!
+			if(l.x >= minX && l.x <= maxX && l.y >= minY && l.y <= maxY && l.z >= minZ && l.z <= maxZ)
+				continue;
+			instances.get(mapInst.getValue()).refCount--;
+			toRemove.add(mapInst.getKey());
+		}
+		for(Location l : toRemove) {
+			map.remove(l);
+		}
+		
+		for(int x = minX; x <= maxX; x++) {
+			for(int y = minY; y <= maxY; y++) {
+				for(int z = minZ; z <= maxZ; z++) {
+					Location l = new Location(x, y, z);
+					if(!map.containsKey(l))
+						putMap(l, defaultInst);
+				}
+			}
 		}
 	}
 	

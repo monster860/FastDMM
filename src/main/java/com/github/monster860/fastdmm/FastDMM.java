@@ -68,7 +68,8 @@ public class FastDMM extends JFrame implements ActionListener, TreeSelectionList
 	private JTabbedPane leftTabs;
 	private Canvas canvas;
 	
-	private JMenuBar menuBar; 
+	private JMenuBar menuBar;
+	private JMenuItem menuItemNew;
 	private JMenuItem menuItemOpen;
 	private JMenuItem menuItemSave;
 	
@@ -172,6 +173,12 @@ public class FastDMM extends JFrame implements ActionListener, TreeSelectionList
             JMenu menu = new JMenu("File");
             menu.setMnemonic(KeyEvent.VK_O);
             menuBar.add(menu);
+            
+            menuItemNew = new JMenuItem("New");
+            menuItemNew.setActionCommand("new");
+            menuItemNew.addActionListener(FastDMM.this);
+            menuItemNew.setEnabled(false);
+            menu.add(menuItemNew);
 
             menuItemOpen = new JMenuItem("Open");
             menuItemOpen.setActionCommand("open");
@@ -196,6 +203,11 @@ public class FastDMM extends JFrame implements ActionListener, TreeSelectionList
 
             menuItem = new JMenuItem("Change Filters", KeyEvent.VK_F);
             menuItem.setActionCommand("change_filters");
+            menuItem.addActionListener(FastDMM.this);
+            menu.add(menuItem);
+            
+            menuItem = new JMenuItem("Expand Map");
+            menuItem.setActionCommand("expand");
             menuItem.addActionListener(FastDMM.this);
             menu.add(menuItem);
 
@@ -269,6 +281,7 @@ return false;
 				areMenusFrozen = true;
 				menuItemOpen.setEnabled(false);
 				menuItemSave.setEnabled(false);
+				menuItemNew.setEnabled(false);
 				new Thread() {
 					public void run() {
 						try {
@@ -281,6 +294,7 @@ return false;
 							objTreeVis.setModel(objTree);
 							menuItemOpen.setEnabled(true);
 							menuItemSave.setEnabled(true);
+							menuItemNew.setEnabled(true);
 							areMenusFrozen = false;
 						} catch(Exception ex) {
 							StringWriter sw = new StringWriter();
@@ -330,6 +344,57 @@ return false;
 				PrintWriter pw = new PrintWriter(sw);
 				ex.printStackTrace(pw);
 				JOptionPane.showMessageDialog(FastDMM.this, sw.getBuffer(), "Error", JOptionPane.ERROR_MESSAGE);
+			}
+		} else if ("new".equals(e.getActionCommand())) {
+			String usePath = JOptionPane.showInputDialog(canvas, "Please enter the path of the new DMM file relative to your DME: ", "FastDMM", JOptionPane.QUESTION_MESSAGE);
+			String strMaxX = (String)JOptionPane.showInputDialog(canvas, "Select the X-size of your new map", "FastDMM", JOptionPane.QUESTION_MESSAGE, null, null, "255");
+			String strMaxY = (String)JOptionPane.showInputDialog(canvas, "Select the Y-size of your new map", "FastDMM", JOptionPane.QUESTION_MESSAGE, null, null, "255");
+			String strMaxZ = (String)JOptionPane.showInputDialog(canvas, "Select the number of Z-levels of your new map", "FastDMM", JOptionPane.QUESTION_MESSAGE, null, null, "1");
+			
+			if(usePath == null || usePath.isEmpty())
+				return;
+			
+			int maxX = 0;
+			int maxY = 0;
+			int maxZ = 0;
+			
+			try {
+				maxX = Integer.parseInt(strMaxX);
+				maxY = Integer.parseInt(strMaxY);
+				maxZ = Integer.parseInt(strMaxZ);
+			} catch (NumberFormatException ex) {
+				return;
+			}
+			
+			synchronized(this) {
+				try {
+					dmm = new DMM(new File(dme.getParentFile(), usePath), objTree, this);
+					dmm.setSize(1, 1, 1, maxX, maxY, maxZ);
+				} catch (IOException ex) {
+					ex.printStackTrace();
+				}
+			}
+		} else if ("expand".equals(e.getActionCommand())) {
+			if(dmm == null)
+				return;
+			String strMaxX = (String)JOptionPane.showInputDialog(canvas, "Select the new X-size", "FastDMM", JOptionPane.QUESTION_MESSAGE, null, null, ""+dmm.maxX);
+			String strMaxY = (String)JOptionPane.showInputDialog(canvas, "Select the new Y-size", "FastDMM", JOptionPane.QUESTION_MESSAGE, null, null, ""+dmm.maxY);
+			String strMaxZ = (String)JOptionPane.showInputDialog(canvas, "Select the new number of Z-levels", "FastDMM", JOptionPane.QUESTION_MESSAGE, null, null, ""+dmm.maxZ);
+			
+			int maxX = 0;
+			int maxY = 0;
+			int maxZ = 0;
+			
+			try {
+				maxX = Integer.parseInt(strMaxX);
+				maxY = Integer.parseInt(strMaxY);
+				maxZ = Integer.parseInt(strMaxZ);
+			} catch (NumberFormatException ex) {
+				return;
+			}
+			
+			synchronized(this) {
+				dmm.setSize(1, 1, 1, maxX, maxY, maxZ);
 			}
 		}
 	}
@@ -418,6 +483,8 @@ return false;
 		
 		selX = (int)Math.floor(viewportX + (xpos/viewportZoom) - xScrOff);
 		selY = (int)Math.floor(viewportY - (ypos/viewportZoom) + yScrOff);
+		
+		System.out.println(selX + ", " + selY);
 		
 		if((prevSelX != selX || prevSelY != selY) && currPlacementHandler != null) {
 			currPlacementHandler.dragTo(new Location(selX, selY, 1));
