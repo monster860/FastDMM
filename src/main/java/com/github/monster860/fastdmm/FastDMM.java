@@ -28,6 +28,7 @@ import com.github.monster860.fastdmm.dmmmap.DMM;
 import com.github.monster860.fastdmm.dmmmap.Location;
 import com.github.monster860.fastdmm.dmmmap.TileInstance;
 import com.github.monster860.fastdmm.editing.DefaultPlacementHandler;
+import com.github.monster860.fastdmm.editing.DefaultPlacementMode;
 import com.github.monster860.fastdmm.editing.DeleteListener;
 import com.github.monster860.fastdmm.editing.DirectionalPlacementHandler;
 import com.github.monster860.fastdmm.editing.EditVarsListener;
@@ -36,6 +37,8 @@ import com.github.monster860.fastdmm.editing.MoveToBottomListener;
 import com.github.monster860.fastdmm.editing.MoveToTopListener;
 import com.github.monster860.fastdmm.editing.NoDmeTreeModel;
 import com.github.monster860.fastdmm.editing.PlacementHandler;
+import com.github.monster860.fastdmm.editing.PlacementMode;
+import com.github.monster860.fastdmm.editing.PlacementModeListener;
 import com.github.monster860.fastdmm.objtree.InstancesRenderer;
 import com.github.monster860.fastdmm.objtree.ObjInstance;
 import com.github.monster860.fastdmm.objtree.ObjectTree;
@@ -87,6 +90,7 @@ public class FastDMM extends JFrame implements ActionListener, TreeSelectionList
 	private boolean hasLoadedImageThisFrame = false;
 	
 	private PlacementHandler currPlacementHandler = null;
+	public PlacementMode placementMode = null;
 	
 	public boolean isCtrlPressed = false;
 	public boolean isShiftPressed = false;
@@ -209,6 +213,12 @@ public class FastDMM extends JFrame implements ActionListener, TreeSelectionList
             menuItem = new JMenuItem("Expand Map");
             menuItem.setActionCommand("expand");
             menuItem.addActionListener(FastDMM.this);
+            menu.add(menuItem);
+            
+            menu.addSeparator();
+            
+            menuItem = new JRadioButtonMenuItem("Default Placement", true);
+            menuItem.addActionListener(new PlacementModeListener(this, placementMode = new DefaultPlacementMode()));
             menu.add(menuItem);
 
             setJMenuBar(menuBar);
@@ -594,10 +604,7 @@ return false;
 						currPopup.show(canvas, Mouse.getX(), Display.getHeight()-Mouse.getY());
 					}
 				} else if (Mouse.getEventButton() == 0 && selectedInstance != null) {
-					if(this.isCtrlPressed)
-						currPlacementHandler = new DirectionalPlacementHandler();
-					else
-						currPlacementHandler = new DefaultPlacementHandler();
+					currPlacementHandler = placementMode.getPlacementHandler(this, selectedInstance, l);
 					currPlacementHandler.init(this, selectedInstance, l);
 				}
 			} else {
