@@ -1,5 +1,6 @@
 package com.github.monster860.fastdmm.objtree;
 
+import com.github.monster860.fastdmm.CachedPattern;
 import com.github.monster860.fastdmm.Util;
 
 import java.awt.BorderLayout;
@@ -38,8 +39,10 @@ public class ObjectTreeParser {
 	
 	public Map<String, String> macros = new HashMap<>();
 	public JFrame modalParent;
-	
-	public ObjectTreeParser() {
+
+    public static final CachedPattern quotesPattern = new CachedPattern("^\"(.*)\"$");
+
+    public ObjectTreeParser() {
 		tree = new ObjectTree();
 		initializeMacros();
 	}
@@ -293,7 +296,7 @@ public class ObjectTreeParser {
                     if (m.find()) {
 						String group = m.group(1);
 						if (group.equals("FILE_DIR")) {
-							Matcher quotes = Pattern.compile("^\"(.*)\"$").matcher(m.group(2));
+							Matcher quotes = quotesPattern.getMatcher(m.group(2));
 							if (quotes.find()) {
 								// 2 ways this can't happen:
 								// Somebody intentionally placed broken FILE_DIR defines.

@@ -1,5 +1,6 @@
 package com.github.monster860.fastdmm.objtree;
 
+import com.github.monster860.fastdmm.CachedPattern;
 import com.sun.javafx.scene.control.skin.VirtualFlow;
 
 import java.io.File;
@@ -26,7 +27,7 @@ public class ObjectTree implements TreeModel {
 	// List of all FILE_DIR definitions.
 	// Linked list because it only really gets used for iteration and I'm too lazy to estimate the directory count
 	// So it doesn't reallocate the array a billion times.
-	public LinkedList<Path> fileDirs = new LinkedList<Path>();
+	public LinkedList<Path> fileDirs = new LinkedList<>();
 
 	public int icon_size;
 	
@@ -483,15 +484,15 @@ public class ObjectTree implements TreeModel {
 	 * @exception FileNotFoundException Thrown if the file name could not be resolved.
 	 */
 	public String filePath(String filePath) throws FileNotFoundException {
-		for(Iterator<Path> i = fileDirs.iterator(); i.hasNext();) {
-			Path path = i.next();
+		for(Path path : fileDirs) {
 			Path newPath = path.resolve(filePath);
 			Path rootPath = Paths.get(dmePath).getParent();
 			File newFile = rootPath.resolve(newPath).toFile();
 
 			// Ding ding ding we got a winner!
-			if(newFile.exists() && newFile.canRead())
+			if(newFile.exists() && newFile.canRead()) {
 				return newPath.toString();
+			}
 		}
 		throw new FileNotFoundException();
 	}

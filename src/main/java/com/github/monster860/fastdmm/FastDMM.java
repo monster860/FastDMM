@@ -385,8 +385,7 @@ return false;
 			DMI dmi = null;
 			try {
 				if(name != null && name.trim().length() > 0) {
-					dmi = new DMI(new File(dme.getParentFile(),
-					                       objTree.filePath(Util.separatorsToSystem(name))));
+					dmi = new DMI(new File(dme.getParentFile(), objTree.filePath(Util.separatorsToSystem(name))));
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
