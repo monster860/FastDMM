@@ -1,15 +1,14 @@
 package com.github.monster860.fastdmm.objtree;
 
+import com.sun.javafx.scene.control.skin.VirtualFlow;
+
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.PrintStream;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -23,7 +22,12 @@ import javax.swing.tree.TreePath;
 public class ObjectTree implements TreeModel {
 	public HashMap<String,Item> items = new HashMap<>();
 	public String dmePath;
-	
+
+	// List of all FILE_DIR definitions.
+	// Linked list because it only really gets used for iteration and I'm too lazy to estimate the directory count
+	// So it doesn't reallocate the array a billion times.
+	public LinkedList<Path> fileDirs = new LinkedList<>();
+
 	public int icon_size;
 	
 	public ObjectTree()
@@ -114,8 +118,11 @@ public class ObjectTree implements TreeModel {
 		world.setVar("turf", "/turf");
 		world.setVar("mob", "/mob");
 		world.setVar("area", "/area");
+
+		// Empty path, this will be resolved as project root by filePath.
+		fileDirs.add(Paths.get(""));
 	}
-	
+
 	public Item getOrCreate(String path) {
 		if(items.containsKey(path))
 			return items.get(path);
@@ -467,5 +474,25 @@ public class ObjectTree implements TreeModel {
 	
 	public String toString() {
 		return dmePath;
+	}
+
+	/*
+	 * Gets a file name, taking the project's FILE_DIR into account.
+	 * @param fileName The relative name of the file, which should be found with FILE_DIR definitions.
+	 * @return The relative file path from the root project folder (folder with the opened code file).
+	 * @exception FileNotFoundException Thrown if the file name could not be resolved.
+	 */
+	public String filePath(String filePath) throws FileNotFoundException {
+		for(Path path : fileDirs) {
+			Path newPath = path.resolve(filePath);
+			Path rootPath = Paths.get(dmePath).getParent();
+			File newFile = rootPath.resolve(newPath).toFile();
+
+			// Ding ding ding we got a winner!
+			if(newFile.exists() && newFile.canRead()) {
+				return newPath.toString();
+			}
+		}
+		throw new FileNotFoundException();
 	}
 }
