@@ -484,8 +484,6 @@ return false;
 		selX = (int)Math.floor(viewportX + (xpos/viewportZoom) - xScrOff);
 		selY = (int)Math.floor(viewportY - (ypos/viewportZoom) + yScrOff);
 		
-		System.out.println(selX + ", " + selY);
-		
 		if((prevSelX != selX || prevSelY != selY) && currPlacementHandler != null) {
 			currPlacementHandler.dragTo(new Location(selX, selY, 1));
 		}
