@@ -734,7 +734,7 @@ return false;
 	        }
 	        
 	        for(RenderInstance ri : rendInstanceSet) { 
-	        	glColor3f(ri.color.getRed(), ri.color.getGreen(), ri.color.getBlue());
+	        	glColor3f(ri.color.getRed()/255f, ri.color.getGreen()/255f, ri.color.getBlue()/255f);
 	        	glBindTexture(GL_TEXTURE_2D, ri.substate.dmi.glID);
 	        	
     			glPushMatrix();
