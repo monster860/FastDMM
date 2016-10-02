@@ -79,13 +79,5 @@ public class BlockPlacementHandler implements PlacementHandler {
 					editor.dmm.putMap(l, newKey);
 				}
 			}
-		/*for(Location l : usedLocations) {
-			String key = editor.dmm.map.get(l);
-			if(key != null) {
-				TileInstance tInstance = editor.dmm.instances.get(key);
-				String newKey = tInstance.addObject(oInstance);
-				editor.dmm.putMap(l, newKey);
-			}
-		}*/
 	}
 }
