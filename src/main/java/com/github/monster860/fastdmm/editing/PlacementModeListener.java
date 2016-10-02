@@ -11,6 +11,7 @@ public class PlacementModeListener implements ActionListener {
 	
 	public PlacementModeListener(FastDMM editor, PlacementMode mode) {
 		this.editor = editor;
+		this.mode = mode;
 	}
 	
 	@Override
