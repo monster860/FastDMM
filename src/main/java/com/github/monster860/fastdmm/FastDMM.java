@@ -274,7 +274,7 @@ return false;
 						try {
 							ObjectTreeParser parser = new ObjectTreeParser();
 							parser.modalParent = FastDMM.this;
-							parser.doParse(dme, true);
+							parser.parseDME(dme);
 							parser.tree.completeTree();
 							objTree = parser.tree;
 							objTree.dmePath = dme.getAbsolutePath();
