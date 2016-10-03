@@ -68,6 +68,9 @@ public class FastDMM extends JFrame implements ActionListener, TreeSelectionList
 	private JPanel leftPanel;
 	private JPanel objTreePanel;
 	private JPanel instancesPanel;
+	private JPanel vpData;
+	private JLabel coords;
+	private JLabel selection;
 	private JTabbedPane leftTabs;
 	private Canvas canvas;
 	
@@ -139,6 +142,16 @@ public class FastDMM extends JFrame implements ActionListener, TreeSelectionList
             leftPanel.setLayout(new BorderLayout());
             leftPanel.setSize(350, 1);
             leftPanel.setPreferredSize(leftPanel.getSize());
+            
+            vpData = new JPanel();
+            vpData.setLayout(new BorderLayout());
+            vpData.setSize(350, 25);
+            vpData.setPreferredSize(vpData.getSize());
+            coords = new JLabel(" 0, 0");
+            selection = new JLabel(" "); //adding this for when we add selections, so we can show selected tile count
+            vpData.add(coords, BorderLayout.WEST);
+            vpData.add(selection, BorderLayout.EAST);
+            leftPanel.add(vpData, BorderLayout.SOUTH);
 
             instancesPanel = new JPanel();
             instancesPanel.setLayout(new BorderLayout());
@@ -531,6 +544,21 @@ return false;
 		if(Mouse.isButtonDown(2) || (Mouse.isButtonDown(0) && isAltPressed)) {
 			viewportX -= (dx / viewportZoom);
 			viewportY += (dy / viewportZoom);
+		}
+		
+		if(dme != null) {
+			if(dmm != null) {
+				if(selX >= 1 && selY >= 1) {
+					String tcoord = " " + String.valueOf(selX) + ", " + String.valueOf(selY);
+					coords.setText(tcoord);
+				} else {
+					coords.setText(" Out of bounds.");
+				}
+			} else {
+				coords.setText(" No DMM loaded.");
+			}
+		} else {
+			coords.setText(" No DME loaded.");
 		}
 		
 		if(dmm == null || dme == null)
