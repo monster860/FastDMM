@@ -227,7 +227,7 @@ public class FastDMM extends JFrame implements ActionListener, TreeSelectionList
             menuItemExpand = new JMenuItem("Expand Map");
             menuItemExpand.setActionCommand("expand");
             menuItemExpand.addActionListener(FastDMM.this);
-			menuItemExpand.setEnabled(false);
+            menuItemExpand.setEnabled(false);
             menu.add(menuItemExpand);
             
             menu.addSeparator();
