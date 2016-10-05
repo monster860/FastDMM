@@ -1,10 +1,5 @@
 // Copyright © 2016 BYOND Software.
 
-// This file is not covered under the normal GPL license.
-// Also that copyright header isn't there in the original but I added it anyways.
-// This is here as a reference.
-// Please don't sue us Lummox.
-
 // directions
 var/const
 	NORTH = 1

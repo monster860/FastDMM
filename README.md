@@ -42,3 +42,7 @@ In order to run the project you can replace `gradle fatCapsule` with `gradle run
 ```
 gradlew run
 ```
+
+# License
+
+FastDMM is licensed under the **GNU General Public License version 3** (GPLv3), with some exceptions which are marked as such.
