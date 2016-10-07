@@ -1,9 +1,14 @@
 package com.github.monster860.fastdmm;
 
+import java.awt.Color;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Set;
+
+import com.github.monster860.fastdmm.dmirender.RenderInstance;
+import com.github.monster860.fastdmm.dmmmap.Location;
 
 /**
  * This class contains various utilities.
@@ -108,5 +113,156 @@ public class Util {
             return separatorsToUnix(path);
         }
     }
-
+    
+    public static int drawBox(FastDMM editor, Set<RenderInstance> rendInstanceSet, int currCreationIndex, Location a, Location b) {
+    	Location l1 = new Location(Math.min(a.x, b.x),Math.min(a.y, b.y),Math.min(a.z, b.z));
+		Location l2 = new Location(Math.max(a.x, b.x),Math.max(a.y, b.y),Math.max(a.z, b.z));
+		
+		if(l1.equals(l2)) {
+			RenderInstance ri = new RenderInstance(currCreationIndex++);
+			ri.plane = 101;
+			ri.x = l1.x;
+			ri.y = l1.y;
+			ri.substate = editor.interface_dmi.getIconState("15").getSubstate(2);
+			ri.color = new Color(255,255,255);
+			
+			rendInstanceSet.add(ri);
+		} else if(l1.x == l2.x) {
+			RenderInstance ri = new RenderInstance(currCreationIndex++);
+			ri.plane = 101;
+			ri.x = l1.x;
+			ri.y = l1.y;
+			ri.substate = editor.interface_dmi.getIconState("14").getSubstate(2);
+			ri.color = new Color(255,255,255);
+			
+			rendInstanceSet.add(ri);
+			
+			ri = new RenderInstance(currCreationIndex++);
+			ri.plane = 101;
+			ri.x = l2.x;
+			ri.y = l2.y;
+			ri.substate = editor.interface_dmi.getIconState("13").getSubstate(2);
+			ri.color = new Color(255,255,255);
+			
+			rendInstanceSet.add(ri);
+			
+			for(int y = l1.y + 1; y <= l2.y - 1; y++) {
+				ri = new RenderInstance(currCreationIndex++);
+				ri.plane = 101;
+				ri.x = l1.x;
+				ri.y = y;
+				ri.substate = editor.interface_dmi.getIconState("12").getSubstate(2);
+				ri.color = new Color(255,255,255);
+				
+				rendInstanceSet.add(ri);
+			}
+		} else if(l1.y == l2.y) {
+			RenderInstance ri = new RenderInstance(currCreationIndex++);
+			ri.plane = 101;
+			ri.x = l1.x;
+			ri.y = l1.y;
+			ri.substate = editor.interface_dmi.getIconState("11").getSubstate(2);
+			ri.color = new Color(255,255,255);
+			
+			rendInstanceSet.add(ri);
+			
+			ri = new RenderInstance(currCreationIndex++);
+			ri.plane = 101;
+			ri.x = l2.x;
+			ri.y = l2.y;
+			ri.substate = editor.interface_dmi.getIconState("7").getSubstate(2);
+			ri.color = new Color(255,255,255);
+			
+			rendInstanceSet.add(ri);
+			
+			for(int x = l1.x + 1; x <= l2.x - 1; x++) {
+				ri = new RenderInstance(currCreationIndex++);
+				ri.plane = 101;
+				ri.x = x;
+				ri.y = l1.y;
+				ri.substate = editor.interface_dmi.getIconState("3").getSubstate(2);
+				ri.color = new Color(255,255,255);
+				
+				rendInstanceSet.add(ri);
+			}
+		} else {
+			RenderInstance ri = new RenderInstance(currCreationIndex++);
+			ri.plane = 101;
+			ri.x = l1.x;
+			ri.y = l1.y;
+			ri.substate = editor.interface_dmi.getIconState("10").getSubstate(2);
+			ri.color = new Color(255,255,255);
+			
+			rendInstanceSet.add(ri);
+			
+			ri = new RenderInstance(currCreationIndex++);
+			ri.plane = 101;
+			ri.x = l2.x;
+			ri.y = l2.y;
+			ri.substate = editor.interface_dmi.getIconState("5").getSubstate(2);
+			ri.color = new Color(255,255,255);
+			
+			rendInstanceSet.add(ri);
+			
+			ri = new RenderInstance(currCreationIndex++);
+			ri.plane = 101;
+			ri.x = l1.x;
+			ri.y = l2.y;
+			ri.substate = editor.interface_dmi.getIconState("9").getSubstate(2);
+			ri.color = new Color(255,255,255);
+			
+			rendInstanceSet.add(ri);
+			
+			ri = new RenderInstance(currCreationIndex++);
+			ri.plane = 101;
+			ri.x = l2.x;
+			ri.y = l1.y;
+			ri.substate = editor.interface_dmi.getIconState("6").getSubstate(2);
+			ri.color = new Color(255,255,255);
+			
+			rendInstanceSet.add(ri);
+			
+			for(int x = l1.x + 1; x <= l2.x - 1; x++) {
+				ri = new RenderInstance(currCreationIndex++);
+				ri.plane = 101;
+				ri.x = x;
+				ri.y = l1.y;
+				ri.substate = editor.interface_dmi.getIconState("2").getSubstate(2);
+				ri.color = new Color(255,255,255);
+				
+				rendInstanceSet.add(ri);
+				
+				ri = new RenderInstance(currCreationIndex++);
+				ri.plane = 101;
+				ri.x = x;
+				ri.y = l2.y;
+				ri.substate = editor.interface_dmi.getIconState("1").getSubstate(2);
+				ri.color = new Color(255,255,255);
+				
+				rendInstanceSet.add(ri);
+			}
+			
+			for(int y = l1.y + 1; y <= l2.y - 1; y++) {
+				ri = new RenderInstance(currCreationIndex++);
+				ri.plane = 101;
+				ri.x = l1.x;
+				ri.y = y;
+				ri.substate = editor.interface_dmi.getIconState("8").getSubstate(2);
+				ri.color = new Color(255,255,255);
+				
+				rendInstanceSet.add(ri);
+				
+				ri = new RenderInstance(currCreationIndex++);
+				ri.plane = 101;
+				ri.x = l2.x;
+				ri.y = y;
+				ri.substate = editor.interface_dmi.getIconState("4").getSubstate(2);
+				ri.color = new Color(255,255,255);
+				
+				rendInstanceSet.add(ri);
+			}
+		}
+		
+    	return currCreationIndex;
+    }
 }

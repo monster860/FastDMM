@@ -11,6 +11,9 @@ public class DefaultPlacementMode implements PlacementMode {
 
 	@Override
 	public PlacementHandler getPlacementHandler(FastDMM editor, ObjInstance instance, Location initialLocation) {
+		if(instance == null)
+			return null;
+		
 		if(editor.isCtrlPressed)
 			return new DirectionalPlacementHandler();
 		else if(editor.isShiftPressed)

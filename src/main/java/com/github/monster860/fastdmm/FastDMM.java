@@ -39,6 +39,7 @@ import com.github.monster860.fastdmm.editing.NoDmeTreeModel;
 import com.github.monster860.fastdmm.editing.PlacementHandler;
 import com.github.monster860.fastdmm.editing.PlacementMode;
 import com.github.monster860.fastdmm.editing.PlacementModeListener;
+import com.github.monster860.fastdmm.editing.SelectPlacementMode;
 import com.github.monster860.fastdmm.objtree.InstancesRenderer;
 import com.github.monster860.fastdmm.objtree.ObjInstance;
 import com.github.monster860.fastdmm.objtree.ObjectTree;
@@ -217,8 +218,16 @@ public class FastDMM extends JFrame implements ActionListener, TreeSelectionList
             
             menu.addSeparator();
             
+            ButtonGroup placementGroup = new ButtonGroup();
+            
             menuItem = new JRadioButtonMenuItem("Default Placement", true);
             menuItem.addActionListener(new PlacementModeListener(this, placementMode = new DefaultPlacementMode()));
+            placementGroup.add(menuItem);
+            menu.add(menuItem);
+            
+            menuItem = new JRadioButtonMenuItem("Select", false);
+            menuItem.addActionListener(new PlacementModeListener(this, new SelectPlacementMode()));
+            placementGroup.add(menuItem);
             menu.add(menuItem);
 
             setJMenuBar(menuBar);
@@ -603,9 +612,10 @@ return false;
 						canvas.getParent().add(currPopup);
 						currPopup.show(canvas, Mouse.getX(), Display.getHeight()-Mouse.getY());
 					}
-				} else if (Mouse.getEventButton() == 0 && selectedInstance != null) {
+				} else if (Mouse.getEventButton() == 0) {
 					currPlacementHandler = placementMode.getPlacementHandler(this, selectedInstance, l);
-					currPlacementHandler.init(this, selectedInstance, l);
+					if(currPlacementHandler != null)
+						currPlacementHandler.init(this, selectedInstance, l);
 				}
 			} else {
 				if(Mouse.getEventButton() == 0 && currPlacementHandler != null) {
@@ -719,7 +729,7 @@ return false;
 			        			ri.x = x;
 			        			ri.y = y;
 			        			ri.substate = interface_dmi.getIconState("" + dirs).getSubstate(2);
-			        			ri.color = new Color(255,255,255);
+			        			ri.color = new Color(200,200,200);
 			        			
 			        			rendInstanceSet.add(ri);
 			        		}
@@ -732,6 +742,8 @@ return false;
 	        if(currPlacementHandler != null) {
 	        	currCreationIndex = currPlacementHandler.visualize(rendInstanceSet, currCreationIndex);
 	        }
+	        
+	        currCreationIndex = placementMode.visualize(rendInstanceSet, currCreationIndex);
 	        
 	        for(RenderInstance ri : rendInstanceSet) { 
 	        	glColor3f(ri.color.getRed()/255f, ri.color.getGreen()/255f, ri.color.getBlue()/255f);

@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import com.github.monster860.fastdmm.FastDMM;
+import com.github.monster860.fastdmm.Util;
 import com.github.monster860.fastdmm.dmirender.DMI;
 import com.github.monster860.fastdmm.dmirender.IconSubstate;
 import com.github.monster860.fastdmm.dmirender.RenderInstance;
@@ -49,17 +50,19 @@ public class BlockPlacementHandler implements PlacementHandler {
 				ri.substate = substate;
 				ri.color = oInstance.getColor();
 				
-				ri = new RenderInstance(currCreationIndex++);
+				rendInstanceSet.add(ri);
+				
+				/*ri = new RenderInstance(currCreationIndex++);
 				ri.plane = 101;
 				ri.x = x;
 				ri.y = y;
 				ri.substate = editor.interface_dmi.getIconState("15").getSubstate(2);
 				ri.color = new Color(255,255,255);
 				
-				rendInstanceSet.add(ri);
-			
-				rendInstanceSet.add(ri);
+				rendInstanceSet.add(ri);*/
 			}
+		
+		currCreationIndex = Util.drawBox(editor, rendInstanceSet, currCreationIndex, l1, l2);
 		
 		return currCreationIndex;
 	}
