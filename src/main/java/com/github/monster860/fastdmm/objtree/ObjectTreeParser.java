@@ -5,10 +5,12 @@ import com.github.monster860.fastdmm.Util;
 
 import java.awt.BorderLayout;
 import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Paths;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -40,181 +42,28 @@ public class ObjectTreeParser {
 	public Map<String, String> macros = new HashMap<>();
 	public JFrame modalParent;
 
-    public static final CachedPattern quotesPattern = new CachedPattern("^\"(.*)\"$");
+    private static final CachedPattern QUOTES_PATTERN = new CachedPattern("^\"(.*)\"$");
+	private static final CachedPattern DEFINE_PATTERN = new CachedPattern("#define +([\\d\\w]+) +(.+)");
+	private static final CachedPattern UNDEF_PATTERN  = new CachedPattern("#undef[ \\t]*([\\d\\w]+)");
+	private static final CachedPattern MACRO_PATTERN  = new CachedPattern("(?<![\\d\\w\"])\\w+(?![\\d\\w\"])");
 
     public ObjectTreeParser() {
 		tree = new ObjectTree();
-		initializeMacros();
 	}
+
 	public ObjectTreeParser(ObjectTree tree) {
 		this.tree = tree;
-		initializeMacros();
 	}
-	
-	private void initializeMacros() {
-		// Basically, a bunch of shit pulled from stddef.dm
-		
-		// directions
-		macros.put("NORTH", "1");
-		macros.put("SOUTH", "2");
-		macros.put("EAST", "4");
-		macros.put("WEST", "8");
-		macros.put("NORTHEAST", "5");
-		macros.put("NORTHWEST", "9");
-		macros.put("SOUTHEAST", "6");
-		macros.put("SOUTHWEST", "10");
-		macros.put("UP", "16");
-		macros.put("DOWN", "32");
-		// eye and sight
-		macros.put("BLIND", "1");
-		macros.put("SEE_MOBS", "4");
-		macros.put("SEE_OBJS", "8");
-		macros.put("SEE_TURFS", "16");
-		macros.put("SEE_SELF", "32");
-		macros.put("SEE_INFRA", "64");
-		macros.put("SEE_PIXELS", "256");
-		macros.put("SEEINVIS", "2");
-		macros.put("SEEMOBS", "4");
-		macros.put("SEEOBJS", "8");
-		macros.put("SEETURFS", "16");
-		macros.put("MOB_PERSPECTIVE", "0");
-		macros.put("EYE_PERSPECTIVE", "1");
-		macros.put("EDGE_PERSPECTIVE", "2");
-		// layers
-		macros.put("FLOAT_LAYER", "-1");
-		macros.put("AREA_LAYER", "1");
-		macros.put("TURF_LAYER", "2");
-		macros.put("OBJ_LAYER", "3");
-		macros.put("MOB_LAYER", "4");
-		macros.put("FLY_LAYER", "5");
-		macros.put("EFFECTS_LAYER", "5000");
-		macros.put("TOPDOWN_LAYER", "10000");
-		macros.put("BACKGROUND_LAYER", "20000");
-		macros.put("FLOAT_PLANE", "-32767");
-		// map formats
-		macros.put("TOPDOWN_MAP", "0");
-		macros.put("ISOMETRIC_MAP", "1");
-		macros.put("SIDE_MAP", "2");
-		macros.put("TILED_ICON_MAP", "32768");
-		// gliding
-		macros.put("NO_STEPS", "0");
-		macros.put("FORWARD_STEPS", "1");
-		macros.put("SLIDE_STEPS", "2");
-		macros.put("SYNC_STEPS", "3");
-		// appearance_flags
-		macros.put("LONG_GLIDE", "1");
-		macros.put("RESET_COLOR", "2");
-		macros.put("RESET_ALPHA", "4");
-		macros.put("RESET_TRANSFORM", "8");
-		macros.put("NO_CLIENT_COLOR", "16");
-		macros.put("KEEP_TOGETHER", "32");
-		macros.put("KEEP_APART", "64");
-		macros.put("PLANE_MASTER", "128");
-		macros.put("TILE_BOUND", "256");
-		macros.put("TRUE", "1");
-		macros.put("FALSE", "0");
-		macros.put("MALE", "\"male\"");
-		macros.put("FEMALE", "\"female\"");
-		macros.put("NEUTER", "\"neuter\"");
-		macros.put("PLURAL", "\"plural\"");
-		macros.put("MOUSE_INACTIVE_POINTER", "0");
-		macros.put("MOUSE_ACTIVE_POINTER", "1");
-		macros.put("MOUSE_DRAG_POINTER", "3");
-		macros.put("MOUSE_DROP_POINTER", "4");
-		macros.put("MOUSE_ARROW_POINTER", "5");
-		macros.put("MOUSE_CROSSHAIRS_POINTER", "6");
-		macros.put("MOUSE_HAND_POINTER", "7");
-		macros.put("MOUSE_LEFT_BUTTON", "1");
-		macros.put("MOUSE_RIGHT_BUTTON", "2");
-		macros.put("MOUSE_MIDDLE_BUTTON", "4");
-		macros.put("MOUSE_CTRL_KEY", "8");
-		macros.put("MOUSE_SHIFT_KEY", "16");
-		macros.put("MOUSE_ALT_KEY", "32");
-		macros.put("CONTROL_FREAK_ALL", "1");
-		macros.put("CONTROL_FREAK_SKIN", "2");
-		macros.put("CONTROL_FREAK_MACROS", "4");
-		macros.put("MS_WINDOWS", "\"MS Windows\"");
-		macros.put("UNIX", "\"UNIX\"");
-		macros.put("_DM_datum", "0x001");
-		macros.put("_DM_atom", "0x002");
-		macros.put("_DM_movable", "0x004");
-		macros.put("_DM_sound", "0x020");
-		macros.put("_DM_Icon", "0x100");
-		macros.put("_DM_RscFile", "0x200");
-		macros.put("_DM_Matrix", "0x400");
-		macros.put("_DM_Database", "0x1000");
-		macros.put("_DM_Regex", "0x2000");
 
-		// sound
-		macros.put("SOUND_MUTE", "1");
-		macros.put("SOUND_PAUSED", "2");
-		macros.put("SOUND_STREAM", "4");
-		macros.put("SOUND_UPDATE", "16");
+	public void parseDME(File file) throws IOException {
+		// Parse stddef.dm for macros and such.
+		doSubParse(new BufferedReader(new InputStreamReader(Util.getFile("stddef.dm"))), Paths.get("stddef.dm"));
 
-		// icons
-		macros.put("ICON_ADD", "0");
-		macros.put("ICON_SUBTRACT", "1");
-		macros.put("ICON_MULTIPLY", "2");
-		macros.put("ICON_OVERLAY", "3");
-		macros.put("ICON_AND", "4");
-		macros.put("ICON_OR", "5");
-		macros.put("ICON_UNDERLAY", "6");
-
-		// matrix
-		macros.put("MATRIX_COPY", "0");
-		macros.put("MATRIX_MULTIPLY", "1");
-		macros.put("MATRIX_ADD", "2");
-		macros.put("MATRIX_SUBTRACT", "3");
-		macros.put("MATRIX_INVERT", "4");
-		macros.put("MATRIX_ROTATE", "5");
-		macros.put("MATRIX_SCALE", "6");
-		macros.put("MATRIX_TRANSLATE", "7");
-		macros.put("MATRIX_INTERPOLATE", "8");
-		macros.put("MATRIX_MODIFY", "128");
-
-		// animation easing
-		macros.put("LINEAR_EASING", "0");
-		macros.put("SINE_EASING", "1");
-		macros.put("CIRCULAR_EASING", "2");
-		macros.put("CUBIC_EASING", "3");
-		macros.put("BOUNCE_EASING", "4");
-		macros.put("ELASTIC_EASING", "5");
-		macros.put("BACK_EASING", "6");
-		macros.put("QUAD_EASING", "7");
-		macros.put("EASE_IN", "64");
-		macros.put("EASE_OUT", "128");
-
-		// animation flags
-		macros.put("ANIMATION_END_NOW", "1");
-		macros.put("ANIMATION_LINEAR_TRANSFORM", "2");
-
-		// blend_mode
-		macros.put("BLEND_DEFAULT", "0");
-		macros.put("BLEND_OVERLAY", "1");
-		macros.put("BLEND_ADD", "2");
-		macros.put("BLEND_SUBTRACT", "3");
-		macros.put("BLEND_MULTIPLY", "4");
-
-		// Database
-		macros.put("DATABASE_OPEN", "0");
-		macros.put("DATABASE_CLOSE", "1");
-		macros.put("DATABASE_ERROR_CODE", "2");
-		macros.put("DATABASE_ERROR", "3");
-		macros.put("DATABASE_QUERY_CLEAR", "4");
-		macros.put("DATABASE_QUERY_ADD", "5");
-		macros.put("DATABASE_QUERY_EXEC", "8");
-		macros.put("DATABASE_QUERY_NEXT", "9");
-		macros.put("DATABASE_QUERY_ABORT", "10");
-		macros.put("DATABASE_QUERY_RESET", "11");
-		macros.put("DATABASE_QUERY_ROWS_AFFECTED", "12");
-		macros.put("DATABASE_ROW_COLUMN_NAMES", "16");
-		macros.put("DATABASE_ROW_COLUMN_VALUE", "17");
-		macros.put("DATABASE_ROW_LIST", "18");
+		doParse(new BufferedReader(new FileReader(file)), file.toPath(), true);
 	}
-	
-	public void doParse(File file, boolean isMainFile) throws IOException
+
+	public void doParse(BufferedReader br, Path currentFile, boolean isMainFile) throws IOException
 	{
-		BufferedReader br = new BufferedReader(new FileReader(file));
 		String line = null;
 		ArrayList<String> lines = new ArrayList<>();
 		StringBuilder runOn = new StringBuilder();;
@@ -243,16 +92,16 @@ public class ObjectTreeParser {
 			}
 		}
 		br.close();
-		
+
 		ArrayList<String> pathTree = new ArrayList<>();
-		
+
 		int currentInclude = 0;
-		
+
 		JProgressBar dpb = null;
 		JDialog dlg = null;
 		JLabel lbl = null;
 		if(isMainFile) {
-			final JDialog tdlg = new JDialog(modalParent, "Object Tree Generation", modalParent == null ? false : true);
+			final JDialog tdlg = new JDialog(modalParent, "Object Tree Generation", modalParent != null);
 			dlg = tdlg;
 			dpb = new JProgressBar(0, includeCount);
 			dlg.add(BorderLayout.CENTER, dpb);
@@ -277,26 +126,24 @@ public class ObjectTreeParser {
                         lbl.setText(path);
                     }
                     if (path.endsWith(".dm") || path.endsWith(".dme")) {
-                        File includeFile = new File(file.getParentFile(), Util.separatorsToSystem(path));
+                        File includeFile = new File(currentFile.getParent().toFile(), Util.separatorsToSystem(path));
                         if (!includeFile.exists()) {
-                            System.err.println(file.getName() + " references a nonexistent file: " + includeFile.getAbsolutePath());
+                            System.err.println(currentFile.getFileName() + " references a nonexistent file: " + includeFile.getAbsolutePath());
                             continue;
                         }
-                        ObjectTreeParser parser = new ObjectTreeParser(tree);
-                        parser.macros = macros;
-                        parser.doParse(includeFile, false);
+	                    doSubParse(new BufferedReader(new FileReader(includeFile)), includeFile.toPath());
                     }
                     if (isMainFile) {
                         currentInclude++;
                         dpb.setValue(currentInclude);
                     }
                 }
-                if (line.startsWith("#define")) {
-                    Matcher m = Pattern.compile("#define +([\\d\\w]+) +(.+)").matcher(line);
+                else if (line.startsWith("#define")) {
+                    Matcher m = DEFINE_PATTERN.getMatcher(line);
                     if (m.find()) {
 						String group = m.group(1);
 						if (group.equals("FILE_DIR")) {
-							Matcher quotes = quotesPattern.getMatcher(m.group(2));
+							Matcher quotes = QUOTES_PATTERN.getMatcher(m.group(2));
 							if (quotes.find()) {
 								// 2 ways this can't happen:
 								// Somebody intentionally placed broken FILE_DIR defines.
@@ -309,8 +156,8 @@ public class ObjectTreeParser {
 						}
                     }
                 }
-                if (line.startsWith("#undef")) {
-                    Matcher m = Pattern.compile("#undef[ \\t]*([\\d\\w]+)").matcher(line);
+                else if (line.startsWith("#undef")) {
+                    Matcher m = UNDEF_PATTERN.getMatcher(line);
                     if (m.find() && macros.containsKey(m.group(1))) {
                         macros.remove(m.group(1));
                     }
@@ -370,7 +217,7 @@ public class ObjectTreeParser {
                     while (!origVal.equals(val)) {
                         origVal = val;
                         // Trust me, this is the fastest way to parse the macros.
-                        Matcher m = Pattern.compile("(?<![\\d\\w\"])\\w+(?![\\d\\w\"])").matcher(val);
+                        Matcher m = MACRO_PATTERN.getMatcher(val);
                         StringBuffer outVal = new StringBuffer();
                         while (m.find()) {
                             if (macros.containsKey(m.group(0)))
@@ -417,7 +264,13 @@ public class ObjectTreeParser {
 		parenthesesDepth = 0;
 		arrayDepth = new int[50];
 	}
-	
+
+	private void doSubParse(BufferedReader br, Path currentFile) throws IOException {
+		ObjectTreeParser parser = new ObjectTreeParser(tree);
+		parser.macros = macros;
+		parser.doParse(br, currentFile, false);
+	}
+
 	public String stripComments(String s)
 	{
 		StringBuilder o = new StringBuilder();

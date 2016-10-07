@@ -27,7 +27,8 @@ public class ObjectTree implements TreeModel {
 	public LinkedList<Path> fileDirs = new LinkedList<>();
 
 	public int icon_size;
-	
+
+
 	public ObjectTree()
 	{
 		// Default datums
@@ -474,7 +475,7 @@ public class ObjectTree implements TreeModel {
 		return dmePath;
 	}
 
-	/*
+	/**
 	 * Gets a file name, taking the project's FILE_DIR into account.
 	 * @param fileName The relative name of the file, which should be found with FILE_DIR definitions.
 	 * @return The relative file path from the root project folder (folder with the opened code file).
