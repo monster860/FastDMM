@@ -69,6 +69,9 @@ public class FastDMM extends JFrame implements ActionListener, TreeSelectionList
 	private JPanel leftPanel;
 	private JPanel objTreePanel;
 	private JPanel instancesPanel;
+	private JPanel vpData;
+	private JLabel coords;
+	private JLabel selection;
 	private JTabbedPane leftTabs;
 	private Canvas canvas;
 	
@@ -76,6 +79,7 @@ public class FastDMM extends JFrame implements ActionListener, TreeSelectionList
 	private JMenuItem menuItemNew;
 	private JMenuItem menuItemOpen;
 	private JMenuItem menuItemSave;
+	private JMenuItem menuItemExpand;
 	
 	private JPopupMenu currPopup;
 	
@@ -140,6 +144,16 @@ public class FastDMM extends JFrame implements ActionListener, TreeSelectionList
             leftPanel.setLayout(new BorderLayout());
             leftPanel.setSize(350, 1);
             leftPanel.setPreferredSize(leftPanel.getSize());
+            
+            vpData = new JPanel();
+            vpData.setLayout(new BorderLayout());
+            vpData.setSize(350, 25);
+            vpData.setPreferredSize(vpData.getSize());
+            coords = new JLabel(" No DME loaded.");
+            selection = new JLabel(" "); //adding this for when we add selections, so we can show selected tile count
+            vpData.add(coords, BorderLayout.WEST);
+            vpData.add(selection, BorderLayout.EAST);
+            leftPanel.add(vpData, BorderLayout.SOUTH);
 
             instancesPanel = new JPanel();
             instancesPanel.setLayout(new BorderLayout());
@@ -211,10 +225,11 @@ public class FastDMM extends JFrame implements ActionListener, TreeSelectionList
             menuItem.addActionListener(FastDMM.this);
             menu.add(menuItem);
             
-            menuItem = new JMenuItem("Expand Map");
-            menuItem.setActionCommand("expand");
-            menuItem.addActionListener(FastDMM.this);
-            menu.add(menuItem);
+            menuItemExpand = new JMenuItem("Expand Map");
+            menuItemExpand.setActionCommand("expand");
+            menuItemExpand.addActionListener(FastDMM.this);
+            menuItemExpand.setEnabled(false);
+            menu.add(menuItemExpand);
             
             menu.addSeparator();
             
@@ -293,14 +308,15 @@ return false;
 			int returnVal = fc.showOpenDialog(this);
 			if(returnVal == JFileChooser.APPROVE_OPTION) {
 				synchronized(this) {
-					dme = fc.getSelectedFile();
 					objTree = null;
 					dmm = null;
+					dme = fc.getSelectedFile();
 				}
 				areMenusFrozen = true;
 				menuItemOpen.setEnabled(false);
 				menuItemSave.setEnabled(false);
 				menuItemNew.setEnabled(false);
+				menuItemExpand.setEnabled(false);
 				new Thread() {
 					public void run() {
 						try {
@@ -344,12 +360,14 @@ return false;
 				try {
 					newDmm = new DMM(dmmList.getSelectedValue(), objTree, this);
 					dmm = newDmm;
+					menuItemExpand.setEnabled(true);
 				} catch (Exception ex) {
 					StringWriter sw = new StringWriter();
 					PrintWriter pw = new PrintWriter(sw);
 					ex.printStackTrace(pw);
 					JOptionPane.showMessageDialog(FastDMM.this, sw.getBuffer(), "Error", JOptionPane.ERROR_MESSAGE);
 					dmm = null;
+					menuItemExpand.setEnabled(false);
 				} finally {
 					areMenusFrozen = false;
 				}
@@ -389,6 +407,7 @@ return false;
 				try {
 					dmm = new DMM(new File(dme.getParentFile(), usePath), objTree, this);
 					dmm.setSize(1, 1, 1, maxX, maxY, maxZ);
+					menuItemExpand.setEnabled(true);
 				} catch (IOException ex) {
 					ex.printStackTrace();
 				}
@@ -540,6 +559,21 @@ return false;
 		if(Mouse.isButtonDown(2) || (Mouse.isButtonDown(0) && isAltPressed)) {
 			viewportX -= (dx / viewportZoom);
 			viewportY += (dy / viewportZoom);
+		}
+		
+		if(dme != null) {
+			if(dmm != null) {
+				if(selX >= 1 && selY >= 1 && selX <= dmm.maxX && selY <= dmm.maxY) {
+					String tcoord = " " + String.valueOf(selX) + ", " + String.valueOf(selY);
+					coords.setText(tcoord);
+				} else {
+					coords.setText(" Out of bounds.");
+				}
+			} else {
+				coords.setText(" No DMM loaded.");
+			}
+		} else {
+			coords.setText(" No DME loaded.");
 		}
 		
 		if(dmm == null || dme == null)
