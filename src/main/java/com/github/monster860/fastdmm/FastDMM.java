@@ -11,6 +11,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.nio.file.*;
+import java.nio.charset.*;
 import java.util.*;
 
 import javax.swing.*;
@@ -76,6 +78,7 @@ public class FastDMM extends JFrame implements ActionListener, TreeSelectionList
 	private Canvas canvas;
 	
 	private JMenuBar menuBar;
+    private JMenu menuRecent;
 	private JMenuItem menuItemNew;
 	private JMenuItem menuItemOpen;
 	private JMenuItem menuItemSave;
@@ -205,6 +208,12 @@ public class FastDMM extends JFrame implements ActionListener, TreeSelectionList
             menuItemOpen.setEnabled(false);
             menu.add(menuItemOpen);
 
+            menuRecent = new JMenu("Recent Files");
+            menuRecent.setMnemonic(KeyEvent.VK_O);
+            menu.add(menuRecent);
+
+            initRecent(menuRecent);
+
             menuItemSave = new JMenuItem("Save");
             menuItemSave.setActionCommand("save");
             menuItemSave.addActionListener(FastDMM.this);
@@ -301,49 +310,7 @@ return false;
 				}
 			}
 		} else if ("open_dme".equals(e.getActionCommand())) {
-			JFileChooser fc = new JFileChooser();
-			if(fc.getChoosableFileFilters().length > 0)
-				fc.removeChoosableFileFilter(fc.getChoosableFileFilters()[0]);
-			fc.addChoosableFileFilter(new FileNameExtensionFilter("BYOND Environments (*.dme)", "dme"));
-			int returnVal = fc.showOpenDialog(this);
-			if(returnVal == JFileChooser.APPROVE_OPTION) {
-				synchronized(this) {
-					objTree = null;
-					dmm = null;
-					dme = fc.getSelectedFile();
-				}
-				areMenusFrozen = true;
-				menuItemOpen.setEnabled(false);
-				menuItemSave.setEnabled(false);
-				menuItemNew.setEnabled(false);
-				menuItemExpand.setEnabled(false);
-				new Thread() {
-					public void run() {
-						try {
-							ObjectTreeParser parser = new ObjectTreeParser();
-							parser.modalParent = FastDMM.this;
-							parser.parseDME(dme);
-							parser.tree.completeTree();
-							objTree = parser.tree;
-							objTree.dmePath = dme.getAbsolutePath();
-							objTreeVis.setModel(objTree);
-							menuItemOpen.setEnabled(true);
-							menuItemSave.setEnabled(true);
-							menuItemNew.setEnabled(true);
-							areMenusFrozen = false;
-						} catch(Exception ex) {
-							StringWriter sw = new StringWriter();
-							PrintWriter pw = new PrintWriter(sw);
-							ex.printStackTrace(pw);
-							JOptionPane.showMessageDialog(FastDMM.this, sw.getBuffer(), "Error", JOptionPane.ERROR_MESSAGE);
-							dme = null;
-							objTree = null;
-						} finally {
-							areMenusFrozen = false;
-						}
-					}
-				}.start();
-			}
+			openDME();
 		} else if ("open".equals(e.getActionCommand())) {
 			List<File> dmms = getDmmFiles(dme.getParentFile());
 			JList<File> dmmList = new JList<>(dmms.toArray(new File[dmms.size()]));
@@ -436,6 +403,103 @@ return false;
 			}
 		}
 	}
+
+    private void openDME(File filetoopen) {
+        synchronized(this) {
+            objTree = null;
+            dmm = null;
+            dme = filetoopen;
+        }
+        areMenusFrozen = true;
+        menuItemOpen.setEnabled(false);
+        menuItemSave.setEnabled(false);
+        menuItemNew.setEnabled(false);
+        menuItemExpand.setEnabled(false);
+        menuRecent.setEnabled(false);
+        //PARSE TREE
+        new Thread() {
+            public void run() {
+                try {
+                    ObjectTreeParser parser = new ObjectTreeParser();
+                    parser.modalParent = FastDMM.this;
+                    parser.parseDME(dme);
+                    parser.tree.completeTree();
+                    objTree = parser.tree;
+                    objTree.dmePath = dme.getAbsolutePath();
+                    objTreeVis.setModel(objTree);
+                    menuItemOpen.setEnabled(true);
+                    menuItemSave.setEnabled(true);
+                    menuItemNew.setEnabled(true);
+                    menuRecent.setEnabled(true);
+                    areMenusFrozen = false;
+                } catch(Exception ex) {
+                    StringWriter sw = new StringWriter();
+                    PrintWriter pw = new PrintWriter(sw);
+                    ex.printStackTrace(pw);
+                    JOptionPane.showMessageDialog(FastDMM.this, sw.getBuffer(), "Error", JOptionPane.ERROR_MESSAGE);
+                    dme = null;
+                    objTree = null;
+                } finally {
+                    areMenusFrozen = false;
+                }
+            }
+        }.start();
+        //ADD TO RECENT
+        if(dme != null) {
+            String recentpath = getAppData() + "recent.txt";
+            String dmepath = filetoopen.getPath() + "\r\n";
+            File f = new File(recentpath);
+            if (f.exists()) {
+                boolean write = true;
+                List<String> lines = null;
+                try {
+                    lines = Files.readAllLines(Paths.get(recentpath), Charset.forName("UTF-8"));
+                } catch (IOException e1) {
+                    StringWriter sw = new StringWriter();
+                    PrintWriter pw = new PrintWriter(sw);
+                    e1.printStackTrace(pw);
+                    JOptionPane.showMessageDialog(FastDMM.this, sw.getBuffer(), "Error", JOptionPane.ERROR_MESSAGE);
+                }
+                for (String line : lines) {
+                    if (line.equals(filetoopen.getPath())) {
+                        write = false;
+                        break;
+                    }
+                }
+                if (write) {
+                    try {
+                        Files.write(Paths.get(recentpath), dmepath.getBytes(), StandardOpenOption.APPEND);
+                    } catch (IOException e1) {
+                        StringWriter sw = new StringWriter();
+                        PrintWriter pw = new PrintWriter(sw);
+                        e1.printStackTrace(pw);
+                        JOptionPane.showMessageDialog(FastDMM.this, sw.getBuffer(), "Error", JOptionPane.ERROR_MESSAGE);
+                    }
+                }
+            } else {
+                try {
+                    Files.write(Paths.get(recentpath), dmepath.getBytes(), StandardOpenOption.CREATE);
+                } catch (IOException e1) {
+                    StringWriter sw = new StringWriter();
+                    PrintWriter pw = new PrintWriter(sw);
+                    e1.printStackTrace(pw);
+                    JOptionPane.showMessageDialog(FastDMM.this, sw.getBuffer(), "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+            initRecent(menuRecent);
+        }
+    }
+
+    private void openDME() {
+        JFileChooser fc = new JFileChooser();
+        if(fc.getChoosableFileFilters().length > 0)
+            fc.removeChoosableFileFilter(fc.getChoosableFileFilters()[0]);
+        fc.addChoosableFileFilter(new FileNameExtensionFilter("BYOND Environments (*.dme)", "dme"));
+        int returnVal = fc.showOpenDialog(this);
+        if(returnVal == JFileChooser.APPROVE_OPTION) {
+            openDME(fc.getSelectedFile());
+        }
+    }
 	
 	public static List<File> getDmmFiles(File directory) {
 		List<File> l = new ArrayList<>();
@@ -449,7 +513,8 @@ return false;
 		return l;
 	}
 	
-	private void init() throws LWJGLException{
+	private void init() throws LWJGLException {
+        getAppData();
 		try {
 			synchronized(this) {
 				while(filters == null) {
@@ -817,4 +882,43 @@ return false;
 			Display.sync(60);
 		}
 	}
+
+    private String getAppData() {
+        String path = System.getProperty("user.home");
+        if(path.contains("/")) { //we need this due to differences between OSs
+            path += "/.fastdmm/";
+        } else {
+            path += "\\.fastdmm\\";
+        }
+        Path AppDataPath = Paths.get(path);
+        if(Files.notExists(AppDataPath)) {
+            new File(path).mkdirs();
+        }
+
+        return path;
+    }
+
+    private void initRecent(JMenu menutoadd) {
+        menutoadd.removeAll();
+        String recentFile = getAppData() + "recent.txt";
+        File recent = new File(recentFile);
+        if(recent.exists()) {
+            List<String> lines = null;
+            try {
+                lines = Files.readAllLines(Paths.get(recentFile), Charset.forName("UTF-8"));
+            } catch (IOException e1) {
+                StringWriter sw = new StringWriter();
+                PrintWriter pw = new PrintWriter(sw);
+                e1.printStackTrace(pw);
+                JOptionPane.showMessageDialog(FastDMM.this, sw.getBuffer(), "Error", JOptionPane.ERROR_MESSAGE);
+            }
+            for (String line : lines) {
+                File f = new File(line);
+                JMenuItem menuItem = new JMenuItem(line);
+                menuItem.addActionListener(arg0 -> openDME(f));
+                menuItem.setEnabled(true);
+                menutoadd.add(menuItem);
+            }
+        }
+    }
 }
