@@ -405,14 +405,6 @@ return false;
     }
 
     private void openDME(File filetoopen) {
-        if(dme != null && filetoopen.getPath().equals(dme.getPath())) {
-            StringWriter sw = new StringWriter();
-            PrintWriter pw = new PrintWriter(sw);
-            pw.print("This DME is already open.");
-            JOptionPane.showMessageDialog(FastDMM.this, sw.getBuffer(), "Info", JOptionPane.INFORMATION_MESSAGE);
-            openDME();
-            return;
-        }
         synchronized(this) {
             objTree = null;
             dmm = null;
