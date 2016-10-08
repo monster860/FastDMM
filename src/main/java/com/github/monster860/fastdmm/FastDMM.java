@@ -405,6 +405,14 @@ return false;
     }
 
     private void openDME(File filetoopen) {
+        if(dme != null && filetoopen.getPath().equals(dme.getPath())) {
+            StringWriter sw = new StringWriter();
+            PrintWriter pw = new PrintWriter(sw);
+            pw.print("This DME is already open.");
+            JOptionPane.showMessageDialog(FastDMM.this, sw.getBuffer(), "Info", JOptionPane.INFORMATION_MESSAGE);
+            openDME();
+            return;
+        }
         synchronized(this) {
             objTree = null;
             dmm = null;
@@ -446,7 +454,7 @@ return false;
         }.start();
         //ADD TO RECENT
         if(dme != null) {
-            String recentpath = getAppData() + "recent.txt";
+            String recentpath = System.getProperty("user.home") + File.separator + ".fastdmm" + File.separator + "recent.txt";
             String dmepath = filetoopen.getPath() + "\r\n";
             File f = new File(recentpath);
             if (f.exists()) {
@@ -514,7 +522,11 @@ return false;
     }
 
     private void init() throws LWJGLException {
-        getAppData();
+        String path = System.getProperty("user.home") + File.separator + ".fastdmm" + File.separator;
+        Path AppDataPath = Paths.get(path);
+        if(Files.notExists(AppDataPath)) {
+            new File(path).mkdirs();
+        }
         try {
             synchronized(this) {
                 while(filters == null) {
@@ -883,24 +895,9 @@ return false;
         }
     }
 
-    private String getAppData() {
-        String path = System.getProperty("user.home");
-        if(path.contains("/")) { //we need this due to differences between OSs
-            path += "/.fastdmm/";
-        } else {
-            path += "\\.fastdmm\\";
-        }
-        Path AppDataPath = Paths.get(path);
-        if(Files.notExists(AppDataPath)) {
-            new File(path).mkdirs();
-        }
-
-        return path;
-    }
-
     private void initRecent(JMenu menutoadd) {
         menutoadd.removeAll();
-        String recentFile = getAppData() + "recent.txt";
+        String recentFile = System.getProperty("user.home") + File.separator + ".fastdmm" + File.separator + "recent.txt";
         File recent = new File(recentFile);
         if(recent.exists()) {
             List<String> lines = null;
