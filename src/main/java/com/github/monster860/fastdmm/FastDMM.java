@@ -194,6 +194,7 @@ public class FastDMM extends JFrame implements ActionListener, TreeSelectionList
 
             JMenu menu = new JMenu("File");
             menu.setMnemonic(KeyEvent.VK_O);
+            menu.getPopupMenu().setLightWeightPopupEnabled(false);
             menuBar.add(menu);
             
             menuItemNew = new JMenuItem("New");
@@ -210,6 +211,7 @@ public class FastDMM extends JFrame implements ActionListener, TreeSelectionList
 
             menuRecent = new JMenu("Recent Files");
             menuRecent.setMnemonic(KeyEvent.VK_O);
+            menuRecent.getPopupMenu().setLightWeightPopupEnabled(false);
             menu.add(menuRecent);
 
             initRecent(menuRecent);
@@ -533,6 +535,7 @@ return false;
         //Display.setResizable(true);
         Display.setParent(canvas);
         Display.create();
+        this.setTitle("FastDMM");
 
         if(interface_dmi != null) {
             interface_dmi.createGL();
