@@ -12,39 +12,55 @@ import com.github.monster860.fastdmm.dmmmap.TileInstance;
 import com.github.monster860.fastdmm.objtree.ObjInstance;
 
 public class SelectPlacementMode implements PlacementMode {
-	public FastDMM editor;
-	
-	public Set<Location> selection = new HashSet<Location>();
-	@Override
-	public PlacementHandler getPlacementHandler(FastDMM editor, ObjInstance instance, Location initialLocation) {
-		this.editor = editor;
-		return new SelectPlacementHandler();
-	}
+    public FastDMM editor;
 
-	@Override
-	public int visualize(Set<RenderInstance> rendInstanceSet, int currCreationIndex) {
-		if(editor == null)
-			return currCreationIndex;
-		for(Location l : selection) {
-			int dirs = 0;
-    		for(int i = 0; i < 4; i++) {
-    			int cdir = IconState.indexToDirArray[i];
-    			Location l2 = l.getStep(cdir);
-    			if(!selection.contains(l2))
-    				dirs |= cdir;
-    		}
-    		if(dirs != 0) {
-    			RenderInstance ri = new RenderInstance(currCreationIndex++);
-    			ri.plane = 101;
-    			ri.x = l.x;
-    			ri.y = l.y;
-    			ri.substate = editor.interface_dmi.getIconState("" + dirs).getSubstate(2);
-    			ri.color = new Color(255,255,255);
-    			
-    			rendInstanceSet.add(ri);
-    		}
-		}
-		return currCreationIndex;
-	}
+    public Set<Location> selection = new HashSet<Location>();
+    @Override
+    public PlacementHandler getPlacementHandler(FastDMM editor, ObjInstance instance, Location initialLocation) {
+        this.editor = editor;
+        return new SelectPlacementHandler();
+    }
+
+    @Override
+    public int visualize(Set<RenderInstance> rendInstanceSet, int currCreationIndex) {
+        if(editor == null)
+            return currCreationIndex;
+        for(Location l : selection) {
+            int dirs = 0;
+            for(int i = 0; i < 4; i++) {
+                int cdir = IconState.indexToDirArray[i];
+                Location l2 = l.getStep(cdir);
+                if(!selection.contains(l2))
+                    dirs |= cdir;
+            }
+            if(dirs != 0) {
+                RenderInstance ri = new RenderInstance(currCreationIndex++);
+                ri.plane = 101;
+                ri.x = l.x;
+                ri.y = l.y;
+                ri.substate = editor.interface_dmi.getIconState("" + dirs).getSubstate(2);
+                ri.color = new Color(255,255,255);
+
+                rendInstanceSet.add(ri);
+            }
+        }
+        setCount();
+        return currCreationIndex;
+    }
+
+    public void setCount() {
+        if(selection.size() > 1) {
+            editor.statusstring = selection.size() + " tiles selected. ";
+        } else if(selection.size() == 1) {
+            editor.statusstring = selection.size() + " tile selected. ";
+        } else if(selection.size() == 0) {
+            editor.statusstring = "No tiles selected. ";
+        }
+        editor.selection.setText(editor.statusstring);
+    }
+
+    public void clearSelection() {
+        selection.clear();
+    }
 
 }

@@ -16,10 +16,7 @@ import java.nio.charset.*;
 import java.util.*;
 
 import javax.swing.*;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
-import javax.swing.event.TreeSelectionEvent;
-import javax.swing.event.TreeSelectionListener;
+import javax.swing.event.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import com.github.monster860.fastdmm.dmirender.DMI;
@@ -29,19 +26,7 @@ import com.github.monster860.fastdmm.dmirender.RenderInstance;
 import com.github.monster860.fastdmm.dmmmap.DMM;
 import com.github.monster860.fastdmm.dmmmap.Location;
 import com.github.monster860.fastdmm.dmmmap.TileInstance;
-import com.github.monster860.fastdmm.editing.DefaultPlacementHandler;
-import com.github.monster860.fastdmm.editing.DefaultPlacementMode;
-import com.github.monster860.fastdmm.editing.DeleteListener;
-import com.github.monster860.fastdmm.editing.DirectionalPlacementHandler;
-import com.github.monster860.fastdmm.editing.EditVarsListener;
-import com.github.monster860.fastdmm.editing.MakeActiveObjectListener;
-import com.github.monster860.fastdmm.editing.MoveToBottomListener;
-import com.github.monster860.fastdmm.editing.MoveToTopListener;
-import com.github.monster860.fastdmm.editing.NoDmeTreeModel;
-import com.github.monster860.fastdmm.editing.PlacementHandler;
-import com.github.monster860.fastdmm.editing.PlacementMode;
-import com.github.monster860.fastdmm.editing.PlacementModeListener;
-import com.github.monster860.fastdmm.editing.SelectPlacementMode;
+import com.github.monster860.fastdmm.editing.*;
 import com.github.monster860.fastdmm.objtree.InstancesRenderer;
 import com.github.monster860.fastdmm.objtree.ObjInstance;
 import com.github.monster860.fastdmm.objtree.ObjectTree;
@@ -68,12 +53,16 @@ public class FastDMM extends JFrame implements ActionListener, TreeSelectionList
     int selX = 0;
     int selY = 0;
 
+    boolean selMode = false;
+
+    public String statusstring = " ";
+
     private JPanel leftPanel;
     private JPanel objTreePanel;
     private JPanel instancesPanel;
     private JPanel vpData;
     private JLabel coords;
-    private JLabel selection;
+    public JLabel selection;
     private JTabbedPane leftTabs;
     private Canvas canvas;
 
@@ -153,7 +142,10 @@ public class FastDMM extends JFrame implements ActionListener, TreeSelectionList
             vpData.setSize(350, 25);
             vpData.setPreferredSize(vpData.getSize());
             coords = new JLabel(" No DME loaded.");
-            selection = new JLabel(" "); //adding this for when we add selections, so we can show selected tile count
+            if(currPlacementHandler != null) {
+                statusstring = "No tiles selected. ";
+            }
+            selection = new JLabel(statusstring);
             vpData.add(coords, BorderLayout.WEST);
             vpData.add(selection, BorderLayout.EAST);
             leftPanel.add(vpData, BorderLayout.SOUTH);
@@ -247,12 +239,23 @@ public class FastDMM extends JFrame implements ActionListener, TreeSelectionList
             ButtonGroup placementGroup = new ButtonGroup();
             
             menuItem = new JRadioButtonMenuItem("Default Placement", true);
+            menuItem.addItemListener(e -> { //I know this is ugly, but what can you do
+                statusstring = "Default Placement Mode ";
+                if(dme == null || dmm == null) {
+                    statusstring = " ";
+                }
+                selection.setText(statusstring);
+                selMode = false;
+            });
             menuItem.addActionListener(new PlacementModeListener(this, placementMode = new DefaultPlacementMode()));
             placementGroup.add(menuItem);
             menu.add(menuItem);
             
             menuItem = new JRadioButtonMenuItem("Select", false);
             menuItem.addActionListener(new PlacementModeListener(this, new SelectPlacementMode()));
+            menuItem.addItemListener(e -> {
+                selMode = true;
+            });
             placementGroup.add(menuItem);
             menu.add(menuItem);
 
@@ -339,6 +342,14 @@ return false;
                     menuItemExpand.setEnabled(false);
                 } finally {
                     areMenusFrozen = false;
+                    if(!selMode) {
+                        statusstring = "Default Placement Mode ";
+                    }
+                    selection.setText(statusstring);
+                    if(selMode) {
+                        SelectPlacementMode spm = (SelectPlacementMode) placementMode;
+                        spm.clearSelection();
+                    }
                 }
             }
 
@@ -352,6 +363,8 @@ return false;
                 JOptionPane.showMessageDialog(FastDMM.this, sw.getBuffer(), "Error", JOptionPane.ERROR_MESSAGE);
             }
         } else if ("new".equals(e.getActionCommand())) {
+            statusstring = " ";
+            selection.setText(statusstring);
             String usePath = JOptionPane.showInputDialog(canvas, "Please enter the path of the new DMM file relative to your DME: ", "FastDMM", JOptionPane.QUESTION_MESSAGE);
             String strMaxX = (String)JOptionPane.showInputDialog(canvas, "Select the X-size of your new map", "FastDMM", JOptionPane.QUESTION_MESSAGE, null, null, "255");
             String strMaxY = (String)JOptionPane.showInputDialog(canvas, "Select the Y-size of your new map", "FastDMM", JOptionPane.QUESTION_MESSAGE, null, null, "255");
@@ -381,6 +394,10 @@ return false;
                     ex.printStackTrace();
                 }
             }
+            if(selMode) {
+                SelectPlacementMode spm = (SelectPlacementMode) placementMode;
+                spm.clearSelection();
+            }
         } else if ("expand".equals(e.getActionCommand())) {
             if(dmm == null)
                 return;
@@ -407,9 +424,15 @@ return false;
     }
 
     private void openDME(File filetoopen) {
+        statusstring = " ";
+        selection.setText(statusstring);
         synchronized(this) {
             objTree = null;
             dmm = null;
+            if(selMode) {
+                SelectPlacementMode spm = (SelectPlacementMode) placementMode;
+                spm.clearSelection();
+            }
             dme = filetoopen;
         }
         areMenusFrozen = true;
@@ -598,6 +621,10 @@ return false;
             currPlacementHandler.dragTo(new Location(selX, selY, 1));
         }
 
+        if(dme == null || dmm == null) { //putting this here because it's the only func that updates regularly besides loop()
+            statusstring = " ";
+        }
+
         float dwheel = Mouse.getDWheel();
         if(dwheel != 0) {
             if(dwheel > 0)
@@ -711,7 +738,7 @@ return false;
                             item.addActionListener(new MoveToTopListener(this, l, i));
                             menu.add(item);
 
-                            item = new JMenuItem("Move to Botom");
+                            item = new JMenuItem("Move to Bottom");
                             item.addActionListener(new MoveToBottomListener(this, l, i));
                             menu.add(item);
                         }
