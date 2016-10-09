@@ -14,7 +14,7 @@ import com.github.monster860.fastdmm.objtree.ObjInstance;
 public class SelectPlacementMode implements PlacementMode {
 	public FastDMM editor;
 	
-	public Set<Location> selection = new HashSet<Location>();
+	public static Set<Location> selection = new HashSet<Location>();
 	@Override
 	public PlacementHandler getPlacementHandler(FastDMM editor, ObjInstance instance, Location initialLocation) {
 		this.editor = editor;
