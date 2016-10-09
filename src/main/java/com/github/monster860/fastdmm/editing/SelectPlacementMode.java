@@ -14,7 +14,7 @@ import com.github.monster860.fastdmm.objtree.ObjInstance;
 public class SelectPlacementMode implements PlacementMode {
 	public FastDMM editor;
 	
-	public static Set<Location> selection = new HashSet<Location>();
+	public Set<Location> selection = new HashSet<Location>();
 	@Override
 	public PlacementHandler getPlacementHandler(FastDMM editor, ObjInstance instance, Location initialLocation) {
 		this.editor = editor;
@@ -44,7 +44,23 @@ public class SelectPlacementMode implements PlacementMode {
     			rendInstanceSet.add(ri);
     		}
 		}
+		setCount();
 		return currCreationIndex;
 	}
+
+	public void setCount() {
+        if(selection.size() > 1) {
+            editor.statusstring = selection.size() + " tiles selected. ";
+        } else if(selection.size() == 1) {
+            editor.statusstring = selection.size() + " tile selected. ";
+        } else if(selection.size() == 0) {
+            editor.statusstring = "No tiles selected. ";
+        }
+        editor.selection.setText(editor.statusstring);
+	}
+
+	public void clearSelection() {
+        selection.clear();
+    }
 
 }

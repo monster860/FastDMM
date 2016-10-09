@@ -53,20 +53,16 @@ public class FastDMM extends JFrame implements ActionListener, TreeSelectionList
     int selX = 0;
     int selY = 0;
 
-    private int seltiles = 0;
-    private int startxcache = 0;
-    private int endxcache = 0;
-    private int startycache = 0;
-    private int endycache = 0;
+    boolean selMode = false;
 
-    private String statusstring = " ";
+    public String statusstring = " ";
 
     private JPanel leftPanel;
     private JPanel objTreePanel;
     private JPanel instancesPanel;
     private JPanel vpData;
     private JLabel coords;
-    private JLabel selection;
+    public JLabel selection;
     private JTabbedPane leftTabs;
     private Canvas canvas;
 
@@ -243,30 +239,23 @@ public class FastDMM extends JFrame implements ActionListener, TreeSelectionList
             ButtonGroup placementGroup = new ButtonGroup();
             
             menuItem = new JRadioButtonMenuItem("Default Placement", true);
-            menuItem.addChangeListener(e -> { //I know this is ugly, but what can you do
+            menuItem.addItemListener(e -> { //I know this is ugly, but what can you do
                 statusstring = "Default Placement Mode ";
                 if(dme == null || dmm == null) {
                     statusstring = " ";
                 }
                 selection.setText(statusstring);
+                selMode = false;
             });
             menuItem.addActionListener(new PlacementModeListener(this, placementMode = new DefaultPlacementMode()));
             placementGroup.add(menuItem);
             menu.add(menuItem);
             
             menuItem = new JRadioButtonMenuItem("Select", false);
-            menuItem.addChangeListener(e -> {
-                if(SelectPlacementMode.selection.size() == 0) {
-                    statusstring = "No tiles selected. ";
-                } else {
-                    statusstring = SelectPlacementMode.selection.size() + " tile(s) selected. ";
-                }
-                if (dme == null || dmm == null) {
-                    statusstring = " ";
-                }
-                selection.setText(statusstring);
-            });
             menuItem.addActionListener(new PlacementModeListener(this, new SelectPlacementMode()));
+            menuItem.addItemListener(e -> {
+                selMode = true;
+            });
             placementGroup.add(menuItem);
             menu.add(menuItem);
 
@@ -328,12 +317,6 @@ return false;
         } else if ("open_dme".equals(e.getActionCommand())) {
             openDME();
         } else if ("open".equals(e.getActionCommand())) {
-            if(currPlacementHandler != null) {
-                statusstring = "No tiles selected. ";
-            } else {
-                statusstring = "Default Placement Mode ";
-            }
-            selection.setText(statusstring);
             List<File> dmms = getDmmFiles(dme.getParentFile());
             JList<File> dmmList = new JList<>(dmms.toArray(new File[dmms.size()]));
 
@@ -359,6 +342,14 @@ return false;
                     menuItemExpand.setEnabled(false);
                 } finally {
                     areMenusFrozen = false;
+                    if(!selMode) {
+                        statusstring = "Default Placement Mode ";
+                    }
+                    selection.setText(statusstring);
+                    if(selMode) {
+                        SelectPlacementMode spm = (SelectPlacementMode) placementMode;
+                        spm.clearSelection();
+                    }
                 }
             }
 
@@ -403,6 +394,10 @@ return false;
                     ex.printStackTrace();
                 }
             }
+            if(selMode) {
+                SelectPlacementMode spm = (SelectPlacementMode) placementMode;
+                spm.clearSelection();
+            }
         } else if ("expand".equals(e.getActionCommand())) {
             if(dmm == null)
                 return;
@@ -434,6 +429,10 @@ return false;
         synchronized(this) {
             objTree = null;
             dmm = null;
+            if(selMode) {
+                SelectPlacementMode spm = (SelectPlacementMode) placementMode;
+                spm.clearSelection();
+            }
             dme = filetoopen;
         }
         areMenusFrozen = true;
@@ -756,8 +755,6 @@ return false;
                     synchronized(this) {
                         currPlacementHandler.finalizePlacement();
                     }
-                    statusstring = " tile(s) selected. ";
-                    selection.setText(String.valueOf(SelectPlacementMode.selection.size()) + statusstring);
                     currPlacementHandler = null;
                 }
             }
