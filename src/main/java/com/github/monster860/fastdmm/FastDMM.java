@@ -7,13 +7,11 @@ import java.awt.Font;
 import java.awt.KeyEventPostProcessor;
 import java.awt.KeyboardFocusManager;
 import java.awt.event.*;
-import java.io.File;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
+import java.io.*;
 import java.nio.file.*;
 import java.nio.charset.*;
 import java.util.*;
+import java.util.regex.*;
 
 import javax.swing.*;
 import javax.swing.event.*;
@@ -33,11 +31,14 @@ import com.github.monster860.fastdmm.objtree.ObjectTree;
 import com.github.monster860.fastdmm.objtree.ObjectTreeParser;
 import com.github.monster860.fastdmm.objtree.ObjectTreeRenderer;
 
+import jdk.nashorn.internal.parser.JSONParser;
 import org.lwjgl.LWJGLException;
 import org.lwjgl.Sys;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.*;
+
+import org.json.*;
 
 import static org.lwjgl.opengl.GL11.*;
 
@@ -68,6 +69,7 @@ public class FastDMM extends JFrame implements ActionListener, TreeSelectionList
 
     private JMenuBar menuBar;
     private JMenu menuRecent;
+    private JMenu menuRecentMaps;
     private JMenuItem menuItemNew;
     private JMenuItem menuItemOpen;
     private JMenuItem menuItemSave;
@@ -201,12 +203,12 @@ public class FastDMM extends JFrame implements ActionListener, TreeSelectionList
             menuItemOpen.setEnabled(false);
             menu.add(menuItemOpen);
 
-            menuRecent = new JMenu("Recent Files");
-            menuRecent.setMnemonic(KeyEvent.VK_O);
-            menuRecent.getPopupMenu().setLightWeightPopupEnabled(false);
-            menu.add(menuRecent);
-
-            initRecent(menuRecent);
+            menuRecentMaps = new JMenu("Recent Maps");
+            menuRecentMaps.setMnemonic(KeyEvent.VK_O);
+            menuRecentMaps.getPopupMenu().setLightWeightPopupEnabled(false);
+            menuRecentMaps.setVisible(false);
+            menuRecentMaps.setEnabled(false);
+            menu.add(menuRecentMaps);
 
             menuItemSave = new JMenuItem("Save");
             menuItemSave.setActionCommand("save");
@@ -218,6 +220,13 @@ public class FastDMM extends JFrame implements ActionListener, TreeSelectionList
             menuItem.setActionCommand("open_dme");
             menuItem.addActionListener(FastDMM.this);
             menu.add(menuItem);
+
+            menuRecent = new JMenu("Recent Environments");
+            menuRecent.setMnemonic(KeyEvent.VK_O);
+            menuRecent.getPopupMenu().setLightWeightPopupEnabled(false);
+            menu.add(menuRecent);
+
+            initRecent("dme");
 
             menu = new JMenu("Options");
             menu.setMnemonic(KeyEvent.VK_O);
@@ -314,46 +323,11 @@ return false;
                         filters.add(ObjectTreeParser.cleanPath(filter));
                 }
             }
-        } else if ("open_dme".equals(e.getActionCommand())) {
+        } else if("open_dme".equals(e.getActionCommand())) {
             openDME();
-        } else if ("open".equals(e.getActionCommand())) {
-            List<File> dmms = getDmmFiles(dme.getParentFile());
-            JList<File> dmmList = new JList<>(dmms.toArray(new File[dmms.size()]));
-
-            if(JOptionPane.showConfirmDialog(canvas, new JScrollPane(dmmList), "Select a DMM", JOptionPane.OK_CANCEL_OPTION) == JOptionPane.CANCEL_OPTION)
-                return;
-
-            if(dmmList.getSelectedValue() == null)
-                return;
-            synchronized(this) {
-                dmm = null;
-                areMenusFrozen = true;
-                DMM newDmm;
-                try {
-                    newDmm = new DMM(dmmList.getSelectedValue(), objTree, this);
-                    dmm = newDmm;
-                    menuItemExpand.setEnabled(true);
-                } catch (Exception ex) {
-                    StringWriter sw = new StringWriter();
-                    PrintWriter pw = new PrintWriter(sw);
-                    ex.printStackTrace(pw);
-                    JOptionPane.showMessageDialog(FastDMM.this, sw.getBuffer(), "Error", JOptionPane.ERROR_MESSAGE);
-                    dmm = null;
-                    menuItemExpand.setEnabled(false);
-                } finally {
-                    areMenusFrozen = false;
-                    if(!selMode) {
-                        statusstring = "Default Placement Mode ";
-                    }
-                    selection.setText(statusstring);
-                    if(selMode) {
-                        SelectPlacementMode spm = (SelectPlacementMode) placementMode;
-                        spm.clearSelection();
-                    }
-                }
-            }
-
-        } else if ("save".equals(e.getActionCommand())) {
+        } else if("open".equals(e.getActionCommand())) {
+            openDMM();
+        } else if("save".equals(e.getActionCommand())) {
             try {
                 dmm.save();
             } catch (Exception ex) {
@@ -362,7 +336,7 @@ return false;
                 ex.printStackTrace(pw);
                 JOptionPane.showMessageDialog(FastDMM.this, sw.getBuffer(), "Error", JOptionPane.ERROR_MESSAGE);
             }
-        } else if ("new".equals(e.getActionCommand())) {
+        } else if("new".equals(e.getActionCommand())) {
             statusstring = " ";
             selection.setText(statusstring);
             String usePath = JOptionPane.showInputDialog(canvas, "Please enter the path of the new DMM file relative to your DME: ", "FastDMM", JOptionPane.QUESTION_MESSAGE);
@@ -398,7 +372,7 @@ return false;
                 SelectPlacementMode spm = (SelectPlacementMode) placementMode;
                 spm.clearSelection();
             }
-        } else if ("expand".equals(e.getActionCommand())) {
+        } else if("expand".equals(e.getActionCommand())) {
             if(dmm == null)
                 return;
             String strMaxX = (String)JOptionPane.showInputDialog(canvas, "Select the new X-size", "FastDMM", JOptionPane.QUESTION_MESSAGE, null, null, ""+dmm.maxX);
@@ -441,6 +415,8 @@ return false;
         menuItemNew.setEnabled(false);
         menuItemExpand.setEnabled(false);
         menuRecent.setEnabled(false);
+        menuRecentMaps.setEnabled(false);
+        menuRecentMaps.setVisible(false);
         //PARSE TREE
         new Thread() {
             public void run() {
@@ -456,6 +432,8 @@ return false;
                     menuItemSave.setEnabled(true);
                     menuItemNew.setEnabled(true);
                     menuRecent.setEnabled(true);
+                    menuRecentMaps.setEnabled(true);
+                    menuRecentMaps.setVisible(true);
                     areMenusFrozen = false;
                 } catch(Exception ex) {
                     StringWriter sw = new StringWriter();
@@ -466,53 +444,12 @@ return false;
                     objTree = null;
                 } finally {
                     areMenusFrozen = false;
+                    addToRecent(dme, dmm);
+                    FastDMM.this.setTitle(dme.getName().replaceFirst("[.][^.]+$", ""));
+                    initRecent("both");
                 }
             }
         }.start();
-        //ADD TO RECENT
-        if(dme != null) {
-            String recentpath = System.getProperty("user.home") + File.separator + ".fastdmm" + File.separator + "recent.txt";
-            String dmepath = filetoopen.getPath() + "\r\n";
-            File f = new File(recentpath);
-            if (f.exists()) {
-                boolean write = true;
-                List<String> lines = null;
-                try {
-                    lines = Files.readAllLines(Paths.get(recentpath), Charset.forName("UTF-8"));
-                } catch (IOException e1) {
-                    StringWriter sw = new StringWriter();
-                    PrintWriter pw = new PrintWriter(sw);
-                    e1.printStackTrace(pw);
-                    JOptionPane.showMessageDialog(FastDMM.this, sw.getBuffer(), "Error", JOptionPane.ERROR_MESSAGE);
-                }
-                for (String line : lines) {
-                    if (line.equals(filetoopen.getPath())) {
-                        write = false;
-                        break;
-                    }
-                }
-                if (write) {
-                    try {
-                        Files.write(Paths.get(recentpath), dmepath.getBytes(), StandardOpenOption.APPEND);
-                    } catch (IOException e1) {
-                        StringWriter sw = new StringWriter();
-                        PrintWriter pw = new PrintWriter(sw);
-                        e1.printStackTrace(pw);
-                        JOptionPane.showMessageDialog(FastDMM.this, sw.getBuffer(), "Error", JOptionPane.ERROR_MESSAGE);
-                    }
-                }
-            } else {
-                try {
-                    Files.write(Paths.get(recentpath), dmepath.getBytes(), StandardOpenOption.CREATE);
-                } catch (IOException e1) {
-                    StringWriter sw = new StringWriter();
-                    PrintWriter pw = new PrintWriter(sw);
-                    e1.printStackTrace(pw);
-                    JOptionPane.showMessageDialog(FastDMM.this, sw.getBuffer(), "Error", JOptionPane.ERROR_MESSAGE);
-                }
-            }
-            initRecent(menuRecent);
-        }
     }
 
     private void openDME() {
@@ -526,12 +463,58 @@ return false;
         }
     }
 
+    private void openDMM(File filetoopen) {
+        synchronized(this) {
+            dmm = null;
+            areMenusFrozen = true;
+            DMM newDmm;
+            try {
+                newDmm = new DMM(filetoopen, objTree, this);
+                dmm = newDmm;
+                menuItemExpand.setEnabled(true);
+            } catch (Exception ex) {
+                StringWriter sw = new StringWriter();
+                PrintWriter pw = new PrintWriter(sw);
+                ex.printStackTrace(pw);
+                JOptionPane.showMessageDialog(FastDMM.this, sw.getBuffer(), "Error", JOptionPane.ERROR_MESSAGE);
+                dmm = null;
+                menuItemExpand.setEnabled(false);
+            } finally {
+                areMenusFrozen = false;
+                if(!selMode) {
+                    statusstring = "Default Placement Mode ";
+                }
+                selection.setText(statusstring);
+                if(selMode) {
+                    SelectPlacementMode spm = (SelectPlacementMode) placementMode;
+                    spm.clearSelection();
+                }
+                addToRecent(dme, dmm);
+                FastDMM.this.setTitle(dme.getName().replaceFirst("[.][^.]+$", "") + ": " + dmm.file.getName().replaceFirst("[.][^.]+$", ""));
+                initRecent("both");
+            }
+        }
+    }
+
+    private void openDMM() {
+        List<File> dmms = getDmmFiles(dme.getParentFile());
+        JList<File> dmmList = new JList<>(dmms.toArray(new File[dmms.size()]));
+
+        if(JOptionPane.showConfirmDialog(canvas, new JScrollPane(dmmList), "Select a DMM", JOptionPane.OK_CANCEL_OPTION) == JOptionPane.CANCEL_OPTION)
+            return;
+
+        if(dmmList.getSelectedValue() == null)
+            return;
+
+        openDMM(dmmList.getSelectedValue());
+    }
+
     public static List<File> getDmmFiles(File directory) {
         List<File> l = new ArrayList<>();
         for(File f : directory.listFiles()) {
             if(f.getName().endsWith(".dmm") || f.getName().endsWith(".dmp")) {
                 l.add(f);
-            } else if (!f.getName().equals(".git") && !f.getName().equals("node_modules") && f.isDirectory()) { // .git and node_modules usually contain fucktons of files and no dmm's.
+            } else if(!f.getName().equals(".git") && !f.getName().equals("node_modules") && f.isDirectory()) { // .git and node_modules usually contain fucktons of files and no dmm's.
                 l.addAll(getDmmFiles(f));
             }
         }
@@ -543,6 +526,11 @@ return false;
         Path AppDataPath = Paths.get(path);
         if(Files.notExists(AppDataPath)) {
             new File(path).mkdirs();
+        }
+        String dummy = System.getProperty("user.home") + File.separator + ".fastdmm" + File.separator + "dummy";
+        File dummyFile = new File(dummy);
+        if(!dummyFile.exists()) {
+            convertintojson();
         }
         try {
             synchronized(this) {
@@ -745,7 +733,7 @@ return false;
                         canvas.getParent().add(currPopup);
                         currPopup.show(canvas, Mouse.getX(), Display.getHeight()-Mouse.getY());
                     }
-                } else if (Mouse.getEventButton() == 0) {
+                } else if(Mouse.getEventButton() == 0) {
                     currPlacementHandler = placementMode.getPlacementHandler(this, selectedInstance, l);
                     if(currPlacementHandler != null)
                         currPlacementHandler.init(this, selectedInstance, l);
@@ -769,7 +757,7 @@ return false;
         int width;
         int height;
 
-        while ( !Display.isCloseRequested()) {
+        while( !Display.isCloseRequested()) {
 
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             width = Display.getWidth();
@@ -917,26 +905,203 @@ return false;
         }
     }
 
-    private void initRecent(JMenu menutoadd) {
-        menutoadd.removeAll();
-        String recentFile = System.getProperty("user.home") + File.separator + ".fastdmm" + File.separator + "recent.txt";
-        File recent = new File(recentFile);
-        if(recent.exists()) {
-            List<String> lines = null;
+    private void addToRecent(File dme, DMM dmm) {
+        String path = System.getProperty("user.home") + File.separator + ".fastdmm" + File.separator + "recent.json";
+        File file = new File(path);
+        JSONObject main = new JSONObject();
+
+        if(!file.exists()) {
+            JSONObject env = new JSONObject();
+            JSONArray maplist = new JSONArray();
+            env.put("dme", dme.getPath());
+            env.put("maplist", maplist);
+            main.put("dme1", env);
             try {
-                lines = Files.readAllLines(Paths.get(recentFile), Charset.forName("UTF-8"));
-            } catch (IOException e1) {
+                Files.write(Paths.get(path), main.toString().getBytes(), StandardOpenOption.CREATE);
+            } catch (IOException e) {
                 StringWriter sw = new StringWriter();
                 PrintWriter pw = new PrintWriter(sw);
-                e1.printStackTrace(pw);
+                e.printStackTrace(pw);
                 JOptionPane.showMessageDialog(FastDMM.this, sw.getBuffer(), "Error", JOptionPane.ERROR_MESSAGE);
             }
-            for (String line : lines) {
-                File f = new File(line);
-                JMenuItem menuItem = new JMenuItem(line);
-                menuItem.addActionListener(arg0 -> openDME(f));
-                menuItem.setEnabled(true);
-                menutoadd.add(menuItem);
+        }
+
+        FileReader reader = null;
+        try {
+            reader = new FileReader(path);
+        } catch (FileNotFoundException e) {
+            StringWriter sw = new StringWriter();
+            PrintWriter pw = new PrintWriter(sw);
+            e.printStackTrace(pw);
+            JOptionPane.showMessageDialog(FastDMM.this, sw.getBuffer(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+        main = new JSONObject(new JSONTokener(Objects.requireNonNull(reader)));
+
+        Iterator<?> keys = main.keys();
+        String checkmaps = null;
+        String listmap = null;
+        boolean createDME = true;
+
+        while(keys.hasNext()) {
+            String key = (String)keys.next();
+            if(main.get(key) instanceof JSONObject) {
+                JSONObject environ = main.getJSONObject(key);
+                if(environ.get("dme").equals(dme.getPath())) {
+                    checkmaps = key;
+                    createDME = false;
+                }
+            }
+        }
+
+        if(createDME) {
+            JSONObject environ = new JSONObject();
+            JSONArray listmaps = new JSONArray();
+            environ.put("dme", dme.getPath());
+            environ.put("maplist", listmaps);
+            main.put("dme" + String.valueOf(JSONObject.getNames(main).length+1), environ);
+            checkmaps = "dme" + String.valueOf(JSONObject.getNames(main).length);
+        }
+
+        JSONObject tocheck = main.getJSONObject(checkmaps);
+        Iterator<?> checkkeys = tocheck.keys();
+
+        if(dmm != null) {
+            while(checkkeys.hasNext()) {
+                String key = (String) checkkeys.next();
+                if(tocheck.get(key) instanceof JSONArray) {
+                    JSONArray array = tocheck.getJSONArray(key);
+                    listmap = key;
+                    for(int i = 0; i < array.length(); i++) {
+                        String mapcheck = array.getString(i);
+                        if(mapcheck.equals(dmm.file.getPath())) {
+                            return;
+                        }
+                    }
+                }
+            }
+
+            JSONObject addmap = main.getJSONObject(checkmaps);
+            JSONArray listofmaps = addmap.getJSONArray(listmap);
+
+            if(listofmaps.length() == 0) {
+                listofmaps.put(listofmaps.length(), dmm.file.getPath());
+            } else {
+                listofmaps.put(listofmaps.length() + 1, dmm.file.getPath());
+            }
+        }
+
+        String toWrite = main.toString();
+        toWrite = toWrite.replaceAll(",null", ""); //yes, it's bad but I have no idea why the null thing happens
+
+        try {
+            BufferedWriter writer = new BufferedWriter(new FileWriter(file));
+            writer.write(toWrite);
+            writer.flush();
+            writer.close();
+        } catch (IOException e) {
+            StringWriter sw = new StringWriter();
+            PrintWriter pw = new PrintWriter(sw);
+            e.printStackTrace(pw);
+            JOptionPane.showMessageDialog(FastDMM.this, sw.getBuffer(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void initRecent(String mode) {
+        String recentPath = System.getProperty("user.home") + File.separator + ".fastdmm" + File.separator + "recent.json";
+        File recent = new File(recentPath);
+        if(recent.exists()) {
+            JSONObject main;
+            FileReader reader = null;
+            try {
+                reader = new FileReader(recentPath);
+            } catch (FileNotFoundException e) {
+                StringWriter sw = new StringWriter();
+                PrintWriter pw = new PrintWriter(sw);
+                e.printStackTrace(pw);
+                JOptionPane.showMessageDialog(FastDMM.this, sw.getBuffer(), "Error", JOptionPane.ERROR_MESSAGE);
+            }
+            main = new JSONObject(new JSONTokener(Objects.requireNonNull(reader)));
+
+            if(mode.equals("dme") || mode.equals("both")) {
+                Iterator<?> keys = main.keys();
+                menuRecent.removeAll();
+                while(keys.hasNext()) {
+                    String key = (String) keys.next();
+                    if(main.get(key) instanceof JSONObject) {
+                        JSONObject environ = main.getJSONObject(key);
+                        File f = new File(environ.getString("dme"));
+                        JMenuItem menuItem = new JMenuItem(environ.getString("dme"));
+                        menuItem.addActionListener(arg0 -> openDME(f));
+                        menuItem.setEnabled(true);
+                        menuRecent.add(menuItem);
+                    }
+                }
+            }
+
+            if(mode.equals("dmm") || mode.equals("both")) {
+                Iterator<?> keys = main.keys();
+                menuRecentMaps.removeAll();
+                String checkmaps = null;
+                while(keys.hasNext()) {
+                    String key = (String) keys.next();
+                    if(main.get(key) instanceof JSONObject) {
+                        JSONObject environ = main.getJSONObject(key);
+                        if(environ.get("dme").equals(dme.getPath())) {
+                            checkmaps = key;
+                        }
+                    }
+                }
+
+                if(checkmaps != null) {
+                    JSONObject tocheck = main.getJSONObject(checkmaps);
+                    Iterator<?> checkkeys = tocheck.keys();
+
+                    while(checkkeys.hasNext()) {
+                        String keymap = (String) checkkeys.next();
+                        if(tocheck.get(keymap) instanceof JSONArray) {
+                            JSONArray array = tocheck.getJSONArray(keymap);
+                            for(int i = 0; i < array.length(); i++) {
+                                String map = array.getString(i);
+                                File f = new File(map);
+                                JMenuItem menuItem = new JMenuItem(map);
+                                menuItem.addActionListener(arg0 -> openDMM(f));
+                                menuItem.setEnabled(true);
+                                menuRecentMaps.add(menuItem);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    private void convertintojson() {
+        String recentPath = System.getProperty("user.home") + File.separator + ".fastdmm" + File.separator + "recent.txt";
+        File recent = new File(recentPath);
+        if(recent.exists()) {
+            try(BufferedReader br = new BufferedReader(new FileReader(recentPath))) {
+                String line;
+                while((line = br.readLine()) != null) {
+                    File dmetoadd = new File(line);
+                    if(dmetoadd.exists()) {
+                        addToRecent(dmetoadd, null);
+                    }
+                }
+            } catch(IOException e) {
+                StringWriter sw = new StringWriter();
+                PrintWriter pw = new PrintWriter(sw);
+                e.printStackTrace(pw);
+                JOptionPane.showMessageDialog(FastDMM.this, sw.getBuffer(), "Error", JOptionPane.ERROR_MESSAGE);
+            }
+            recent.delete();
+            String dummy = System.getProperty("user.home") + File.separator + ".fastdmm" + File.separator + "dummy";
+            try {
+                Files.write(Paths.get(dummy), "".getBytes(), StandardOpenOption.CREATE);
+            } catch (IOException e) {
+                StringWriter sw = new StringWriter();
+                PrintWriter pw = new PrintWriter(sw);
+                e.printStackTrace(pw);
+                JOptionPane.showMessageDialog(FastDMM.this, sw.getBuffer(), "Error", JOptionPane.ERROR_MESSAGE);
             }
         }
     }
