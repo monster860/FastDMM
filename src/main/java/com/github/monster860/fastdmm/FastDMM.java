@@ -446,6 +446,7 @@ return false;
                     areMenusFrozen = false;
                     addToRecent(dme, dmm);
                     FastDMM.this.setTitle(dme.getName().replaceFirst("[.][^.]+$", ""));
+                    initRecent("both");
                 }
             }
         }.start();
@@ -490,6 +491,7 @@ return false;
                 }
                 addToRecent(dme, dmm);
                 FastDMM.this.setTitle(dme.getName().replaceFirst("[.][^.]+$", "") + ": " + dmm.file.getName().replaceFirst("[.][^.]+$", ""));
+                initRecent("both");
             }
         }
     }
@@ -1002,7 +1004,6 @@ return false;
             e.printStackTrace(pw);
             JOptionPane.showMessageDialog(FastDMM.this, sw.getBuffer(), "Error", JOptionPane.ERROR_MESSAGE);
         }
-        initRecent("both");
     }
 
     private void initRecent(String mode) {
