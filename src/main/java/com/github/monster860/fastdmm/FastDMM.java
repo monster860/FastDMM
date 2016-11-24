@@ -731,7 +731,7 @@ public class FastDMM extends JFrame implements ActionListener, TreeSelectionList
 									}
 								}
 	
-								JMenu menu = new JMenu(i.typeString());
+								JMenu menu = new JMenu(i.getVar("name") + " (" + i.typeString() + ")");
 								DMI dmi = getDmi(i.getIcon(), false);
 								if (dmi != null) {
 									String iconState = i.getIconState();
