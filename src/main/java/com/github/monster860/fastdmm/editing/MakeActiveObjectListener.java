@@ -5,6 +5,7 @@ import java.awt.event.ActionListener;
 import java.util.LinkedList;
 import java.util.List;
 
+import javax.swing.SwingUtilities;
 import javax.swing.tree.TreePath;
 
 import com.github.monster860.fastdmm.FastDMM;
@@ -36,10 +37,11 @@ public class MakeActiveObjectListener implements ActionListener {
 				curr = curr.parent;
 			}
 			path.add(0, editor.objTree);
-				
+			
 			editor.objTreeVis.setSelectionPath(new TreePath(path.toArray()));
-			editor.instancesVis.setModel(editor.selectedObject);
-			editor.instancesVis.setSelectedValue(editor.selectedInstance, true);
+			SwingUtilities.invokeLater(() -> {
+				editor.instancesVis.setSelectedValue(editor.selectedInstance, true);
+			});
 		}
 	}
 }
