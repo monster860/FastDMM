@@ -296,13 +296,16 @@ public class FastDMM extends JFrame implements ActionListener, TreeSelectionList
 		if (arg0.getPath().getLastPathComponent() instanceof ObjectTree.Item) {
 			selectedObject = (ObjectTree.Item) arg0.getPath().getLastPathComponent();
 			instancesVis.setModel(selectedObject);
-			selectedInstance = selectedObject;
+			if(selectedInstance == null || objTree.get(selectedInstance.typeString()) != selectedObject)
+				selectedInstance = selectedObject;
 			instancesVis.setSelectedValue(selectedInstance, true);
 		}
 	}
 
 	@Override
 	public void valueChanged(ListSelectionEvent arg0) {
+		if(instancesVis.getSelectedValue() == null)
+			return;
 		selectedInstance = instancesVis.getSelectedValue();
 	}
 
