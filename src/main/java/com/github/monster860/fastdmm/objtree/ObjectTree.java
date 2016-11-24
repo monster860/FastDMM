@@ -272,7 +272,7 @@ public class ObjectTree implements TreeModel {
 		}
 		
 		public boolean istype(String path) {
-			if(this.path == path)
+			if(this.path.equals(path))
 				return true;
 			if(parent != null)
 				return parent.istype(path);

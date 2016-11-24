@@ -188,6 +188,29 @@ public class TileInstance {
 		return dmm.getKeyForInstance(ti);
 	}
 	
+	public String removeObjectOrSubtypes(ObjInstance obj) {
+		TileInstance ti = new TileInstance(new ArrayList<>(objs), dmm);
+		ObjectTree.Item replacement = null;
+		if(obj.istype("/area"))
+			replacement = dmm.objTree.get(dmm.objTree.get("/world").getVar("area"));
+		else if(obj.istype("/turf"))
+			replacement = dmm.objTree.get(dmm.objTree.get("/world").getVar("turf"));
+		ObjInstance toDel = null;
+		for(ObjInstance obj2 : ti.objs) {
+			if(obj2 == obj || obj2.istype(obj.toString())) {
+				toDel = obj2;
+				break;
+			}	
+		}
+		if(toDel == null)
+			return dmm.getKeyForInstance(this);
+		if(replacement != null)
+			ti.objs.set(ti.objs.indexOf(toDel), replacement);
+		else
+			ti.objs.remove(toDel);
+		return dmm.getKeyForInstance(ti);
+	}
+	
 	public String moveObjToTop(ObjInstance obj) {
 		TileInstance ti = new TileInstance(new ArrayList<>(objs), dmm);
 		ti.objs.remove(obj);

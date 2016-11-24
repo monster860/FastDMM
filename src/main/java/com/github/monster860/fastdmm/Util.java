@@ -115,6 +115,10 @@ public class Util {
     }
     
     public static int drawBox(FastDMM editor, Set<RenderInstance> rendInstanceSet, int currCreationIndex, Location a, Location b) {
+    	return drawBox(editor,rendInstanceSet,currCreationIndex,a,b,new Color(255,255,255));
+    }
+    
+    public static int drawBox(FastDMM editor, Set<RenderInstance> rendInstanceSet, int currCreationIndex, Location a, Location b, Color c) {
     	Location l1 = new Location(Math.min(a.x, b.x),Math.min(a.y, b.y),Math.min(a.z, b.z));
 		Location l2 = new Location(Math.max(a.x, b.x),Math.max(a.y, b.y),Math.max(a.z, b.z));
 		
@@ -124,7 +128,7 @@ public class Util {
 			ri.x = l1.x;
 			ri.y = l1.y;
 			ri.substate = editor.interface_dmi.getIconState("15").getSubstate(2);
-			ri.color = new Color(255,255,255);
+			ri.color = c;
 			
 			rendInstanceSet.add(ri);
 		} else if(l1.x == l2.x) {
@@ -133,7 +137,7 @@ public class Util {
 			ri.x = l1.x;
 			ri.y = l1.y;
 			ri.substate = editor.interface_dmi.getIconState("14").getSubstate(2);
-			ri.color = new Color(255,255,255);
+			ri.color = c;
 			
 			rendInstanceSet.add(ri);
 			
@@ -142,7 +146,7 @@ public class Util {
 			ri.x = l2.x;
 			ri.y = l2.y;
 			ri.substate = editor.interface_dmi.getIconState("13").getSubstate(2);
-			ri.color = new Color(255,255,255);
+			ri.color = c;
 			
 			rendInstanceSet.add(ri);
 			
@@ -152,7 +156,7 @@ public class Util {
 				ri.x = l1.x;
 				ri.y = y;
 				ri.substate = editor.interface_dmi.getIconState("12").getSubstate(2);
-				ri.color = new Color(255,255,255);
+				ri.color = c;
 				
 				rendInstanceSet.add(ri);
 			}
@@ -162,7 +166,7 @@ public class Util {
 			ri.x = l1.x;
 			ri.y = l1.y;
 			ri.substate = editor.interface_dmi.getIconState("11").getSubstate(2);
-			ri.color = new Color(255,255,255);
+			ri.color = c;
 			
 			rendInstanceSet.add(ri);
 			
@@ -171,7 +175,7 @@ public class Util {
 			ri.x = l2.x;
 			ri.y = l2.y;
 			ri.substate = editor.interface_dmi.getIconState("7").getSubstate(2);
-			ri.color = new Color(255,255,255);
+			ri.color = c;
 			
 			rendInstanceSet.add(ri);
 			
@@ -181,7 +185,7 @@ public class Util {
 				ri.x = x;
 				ri.y = l1.y;
 				ri.substate = editor.interface_dmi.getIconState("3").getSubstate(2);
-				ri.color = new Color(255,255,255);
+				ri.color = c;
 				
 				rendInstanceSet.add(ri);
 			}
@@ -191,7 +195,7 @@ public class Util {
 			ri.x = l1.x;
 			ri.y = l1.y;
 			ri.substate = editor.interface_dmi.getIconState("10").getSubstate(2);
-			ri.color = new Color(255,255,255);
+			ri.color = c;
 			
 			rendInstanceSet.add(ri);
 			
@@ -200,7 +204,7 @@ public class Util {
 			ri.x = l2.x;
 			ri.y = l2.y;
 			ri.substate = editor.interface_dmi.getIconState("5").getSubstate(2);
-			ri.color = new Color(255,255,255);
+			ri.color = c;
 			
 			rendInstanceSet.add(ri);
 			
@@ -209,7 +213,7 @@ public class Util {
 			ri.x = l1.x;
 			ri.y = l2.y;
 			ri.substate = editor.interface_dmi.getIconState("9").getSubstate(2);
-			ri.color = new Color(255,255,255);
+			ri.color = c;
 			
 			rendInstanceSet.add(ri);
 			
@@ -218,7 +222,7 @@ public class Util {
 			ri.x = l2.x;
 			ri.y = l1.y;
 			ri.substate = editor.interface_dmi.getIconState("6").getSubstate(2);
-			ri.color = new Color(255,255,255);
+			ri.color = c;
 			
 			rendInstanceSet.add(ri);
 			
@@ -228,7 +232,7 @@ public class Util {
 				ri.x = x;
 				ri.y = l1.y;
 				ri.substate = editor.interface_dmi.getIconState("2").getSubstate(2);
-				ri.color = new Color(255,255,255);
+				ri.color = c;
 				
 				rendInstanceSet.add(ri);
 				
@@ -237,7 +241,7 @@ public class Util {
 				ri.x = x;
 				ri.y = l2.y;
 				ri.substate = editor.interface_dmi.getIconState("1").getSubstate(2);
-				ri.color = new Color(255,255,255);
+				ri.color = c;
 				
 				rendInstanceSet.add(ri);
 			}
@@ -248,7 +252,7 @@ public class Util {
 				ri.x = l1.x;
 				ri.y = y;
 				ri.substate = editor.interface_dmi.getIconState("8").getSubstate(2);
-				ri.color = new Color(255,255,255);
+				ri.color = c;
 				
 				rendInstanceSet.add(ri);
 				
@@ -257,7 +261,7 @@ public class Util {
 				ri.x = l2.x;
 				ri.y = y;
 				ri.substate = editor.interface_dmi.getIconState("4").getSubstate(2);
-				ri.color = new Color(255,255,255);
+				ri.color = c;
 				
 				rendInstanceSet.add(ri);
 			}
