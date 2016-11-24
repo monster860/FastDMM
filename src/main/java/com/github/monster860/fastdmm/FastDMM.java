@@ -807,7 +807,8 @@ public class FastDMM extends JFrame implements ActionListener, TreeSelectionList
 			glMatrixMode(GL_MODELVIEW);
 			glLoadIdentity();
 			glTranslatef(.5f, .5f, 0);
-			glTranslatef(-viewportX, -viewportY, 0);
+			float roundPlace = (objTree != null ? objTree.icon_size : 32) * viewportZoom / 32f;
+			glTranslatef(-Math.round(viewportX*roundPlace)/roundPlace, -Math.round(viewportY*roundPlace)/roundPlace, 0);
 
 			glEnable(GL_TEXTURE_2D);
 			glEnable(GL_BLEND);
