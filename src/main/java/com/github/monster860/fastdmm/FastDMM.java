@@ -712,65 +712,59 @@ public class FastDMM extends JFrame implements ActionListener, TreeSelectionList
 				String key = dmm.map.get(l);
 				if (Mouse.getEventButton() == 1) {
 					if (key != null) {
-						TileInstance tInstance = dmm.instances.get(key);
-						currPopup = new JPopupMenu();
-						currPopup.setLightWeightPopupEnabled(false);
-						List<ObjInstance> layerSorted = tInstance.getLayerSorted();
-						for (int idx = layerSorted.size() - 1; idx >= 0; idx--) {
-							ObjInstance i = layerSorted.get(idx);
-							if (i == null)
-								continue;
-							boolean valid = false;
-							synchronized (filters) {
-								for (String s : filters) {
-									if (i.toString().startsWith(s)) {
-										valid = true;
-										break;
+						SwingUtilities.invokeLater(() -> {
+							TileInstance tInstance = dmm.instances.get(key);
+							currPopup = new JPopupMenu();
+							currPopup.setLightWeightPopupEnabled(false);
+							List<ObjInstance> layerSorted = tInstance.getLayerSorted();
+							for (int idx = layerSorted.size() - 1; idx >= 0; idx--) {
+								ObjInstance i = layerSorted.get(idx);
+								if (i == null)
+									continue;
+								boolean valid = false;
+								synchronized (filters) {
+									for (String s : filters) {
+										if (i.toString().startsWith(s)) {
+											valid = true;
+											break;
+										}
 									}
 								}
+	
+								JMenu menu = new JMenu(i.typeString());
+								DMI dmi = getDmi(i.getIcon(), false);
+								if (dmi != null) {
+									String iconState = i.getIconState();
+									IconSubstate substate = dmi.getIconState(iconState).getSubstate(i.getDir());
+									menu.setIcon(substate.getScaled());
+								}
+								if (valid)
+									menu.setFont(menu.getFont().deriveFont(Font.BOLD)); // Make it bold if is visible by the filter.
+								currPopup.add(menu);
+	
+								JMenuItem item = new JMenuItem("Make Active Object");
+								item.addActionListener(new MakeActiveObjectListener(this, l, i));
+								menu.add(item);
+	
+								item = new JMenuItem("Delete");
+								item.addActionListener(new DeleteListener(this, l, i));
+								menu.add(item);
+	
+								item = new JMenuItem("View Variables");
+								item.addActionListener(new EditVarsListener(this, l, i));
+								menu.add(item);
+	
+								item = new JMenuItem("Move to Top");
+								item.addActionListener(new MoveToTopListener(this, l, i));
+								menu.add(item);
+	
+								item = new JMenuItem("Move to Bottom");
+								item.addActionListener(new MoveToBottomListener(this, l, i));
+								menu.add(item);
 							}
-
-							JMenu menu = new JMenu(i.typeString());
-							DMI dmi = getDmi(i.getIcon(), false);
-							if (dmi != null) {
-								String iconState = i.getIconState();
-								IconSubstate substate = dmi.getIconState(iconState).getSubstate(i.getDir());
-								menu.setIcon(substate.getScaled());
-							}
-							if (valid)
-								menu.setFont(menu.getFont().deriveFont(Font.BOLD)); // Make
-																					// it
-																					// bold
-																					// if
-																					// is
-																					// visible
-																					// by
-																					// the
-																					// filter.
-							currPopup.add(menu);
-
-							JMenuItem item = new JMenuItem("Make Active Object");
-							item.addActionListener(new MakeActiveObjectListener(this, l, i));
-							menu.add(item);
-
-							item = new JMenuItem("Delete");
-							item.addActionListener(new DeleteListener(this, l, i));
-							menu.add(item);
-
-							item = new JMenuItem("View Variables");
-							item.addActionListener(new EditVarsListener(this, l, i));
-							menu.add(item);
-
-							item = new JMenuItem("Move to Top");
-							item.addActionListener(new MoveToTopListener(this, l, i));
-							menu.add(item);
-
-							item = new JMenuItem("Move to Bottom");
-							item.addActionListener(new MoveToBottomListener(this, l, i));
-							menu.add(item);
-						}
-						canvas.getParent().add(currPopup);
-						currPopup.show(canvas, Mouse.getX(), Display.getHeight() - Mouse.getY());
+							canvas.getParent().add(currPopup);
+							currPopup.show(canvas, Mouse.getX(), Display.getHeight() - Mouse.getY());
+						});
 					}
 				} else if (Mouse.getEventButton() == 0) {
 					currPlacementHandler = placementMode.getPlacementHandler(this, selectedInstance, l);
