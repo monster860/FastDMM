@@ -533,17 +533,8 @@ public class FastDMM extends JFrame implements ActionListener, TreeSelectionList
 		for (File f : directory.listFiles()) {
 			if (f.getName().endsWith(".dmm") || f.getName().endsWith(".dmp")) {
 				l.add(f);
-			} else if (!f.getName().equals(".git") && !f.getName().equals("node_modules") && f.isDirectory()) { // .git
-																												// and
-																												// node_modules
-																												// usually
-																												// contain
-																												// fucktons
-																												// of
-																												// files
-																												// and
-																												// no
-																												// dmm's.
+			} else if (!f.getName().equals(".git") && !f.getName().equals("node_modules") && f.isDirectory()) { 
+				// .git and node_modules usually contain fucktons of files and no dmm's.
 				l.addAll(getDmmFiles(f));
 			}
 		}
