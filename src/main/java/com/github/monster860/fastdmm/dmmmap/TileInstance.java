@@ -179,8 +179,14 @@ public class TileInstance {
 		ObjectTree.Item replacement = null;
 		if(obj.istype("/area"))
 			replacement = dmm.objTree.get(dmm.objTree.get("/world").getVar("area"));
-		else if(obj.istype("/turf"))
-			replacement = dmm.objTree.get(dmm.objTree.get("/world").getVar("turf"));
+		else if(obj.istype("/turf")) {
+			int turfcount = 0;
+			for(ObjInstance i : ti.objs)
+				if(i.istype("/turf"))
+					turfcount++;
+			if(turfcount <= 1)
+				replacement = dmm.objTree.get(dmm.objTree.get("/world").getVar("turf"));
+		}
 		if(replacement != null)
 			ti.objs.set(ti.objs.indexOf(obj), replacement);
 		else
@@ -193,8 +199,14 @@ public class TileInstance {
 		ObjectTree.Item replacement = null;
 		if(obj.istype("/area"))
 			replacement = dmm.objTree.get(dmm.objTree.get("/world").getVar("area"));
-		else if(obj.istype("/turf"))
-			replacement = dmm.objTree.get(dmm.objTree.get("/world").getVar("turf"));
+		else if(obj.istype("/turf")) {
+			int turfcount = 0;
+			for(ObjInstance i : ti.objs)
+				if(i.istype("/turf"))
+					turfcount++;
+			if(turfcount <= 1)
+				replacement = dmm.objTree.get(dmm.objTree.get("/world").getVar("turf"));
+		}
 		ObjInstance toDel = null;
 		for(ObjInstance obj2 : ti.objs) {
 			if(obj2 == obj || obj2.istype(obj.toString())) {
