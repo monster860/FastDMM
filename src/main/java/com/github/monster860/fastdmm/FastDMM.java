@@ -273,7 +273,7 @@ public class FastDMM extends JFrame implements ActionListener, TreeSelectionList
 
 			setJMenuBar(menuBar);
 
-			filters = new TreeSet<>();
+			filters = new TreeSet<>(new FilterComparator());
 			filters.add("/obj");
 			filters.add("/turf");
 			filters.add("/mob");
@@ -327,8 +327,13 @@ public class FastDMM extends JFrame implements ActionListener, TreeSelectionList
 			synchronized (filters) {
 				filters.clear();
 				for (String filter : ta.getText().split("(\\r\\n|\\r|\\n)")) {
-					if (!filter.trim().isEmpty())
-						filters.add(ObjectTreeParser.cleanPath(filter));
+					if (!filter.trim().isEmpty()) {
+						if(filter.startsWith("~"))
+							filter = '~' + ObjectTreeParser.cleanPath(filter.substring(1));
+						else
+							filter = ObjectTreeParser.cleanPath(filter);
+						filters.add(filter);
+					}
 				}
 			}
 		} else if ("open_dme".equals(e.getActionCommand())) {
@@ -712,15 +717,7 @@ public class FastDMM extends JFrame implements ActionListener, TreeSelectionList
 								ObjInstance i = layerSorted.get(idx);
 								if (i == null)
 									continue;
-								boolean valid = false;
-								synchronized (filters) {
-									for (String s : filters) {
-										if (i.toString().startsWith(s)) {
-											valid = true;
-											break;
-										}
-									}
-								}
+								boolean valid = inFilter(i);
 	
 								JMenu menu = new JMenu(i.getVar("name") + " (" + i.typeString() + ")");
 								DMI dmi = getDmi(i.getIcon(), false);
@@ -825,15 +822,7 @@ public class FastDMM extends JFrame implements ActionListener, TreeSelectionList
 							for (ObjInstance oInstance : instance.getLayerSorted()) {
 								if (oInstance == null)
 									continue;
-								boolean valid = false;
-								synchronized (filters) {
-									for (String s : filters) {
-										if (oInstance.toString().startsWith(s)) {
-											valid = true;
-											break;
-										}
-									}
-								}
+								boolean valid = inFilter(oInstance);
 								if (!valid)
 									continue;
 								DMI dmi = getDmi(oInstance.getIcon(), true);
@@ -1135,5 +1124,23 @@ public class FastDMM extends JFrame implements ActionListener, TreeSelectionList
 				JOptionPane.showMessageDialog(FastDMM.this, sw.getBuffer(), "Error", JOptionPane.ERROR_MESSAGE);
 			}
 		}
+	}
+	
+	public boolean inFilter(ObjInstance i) {
+		boolean valid = false;
+		synchronized (filters) {
+			for (String s : filters) {
+				boolean newValid = true;
+				if(s.startsWith("~")) {
+					s = s.substring(1);
+					newValid = false; 
+				}
+					
+				if(i.toString().startsWith(s)) {
+					valid = newValid;
+				}
+			}
+		}
+		return valid;
 	}
 }
