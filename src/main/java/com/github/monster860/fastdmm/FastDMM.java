@@ -712,6 +712,7 @@ public class FastDMM extends JFrame implements ActionListener, TreeSelectionList
 							TileInstance tInstance = dmm.instances.get(key);
 							currPopup = new JPopupMenu();
 							currPopup.setLightWeightPopupEnabled(false);
+							placementMode.addToTileMenu(this, l, tInstance, currPopup);
 							List<ObjInstance> layerSorted = tInstance.getLayerSorted();
 							for (int idx = layerSorted.size() - 1; idx >= 0; idx--) {
 								ObjInstance i = layerSorted.get(idx);

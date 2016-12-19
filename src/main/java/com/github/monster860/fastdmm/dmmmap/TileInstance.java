@@ -6,6 +6,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.regex.*;
 
+import com.github.monster860.fastdmm.FastDMM;
 import com.github.monster860.fastdmm.dmirender.DMI;
 import com.github.monster860.fastdmm.dmirender.IconSubstate;
 import com.github.monster860.fastdmm.objtree.ModifiedType;
@@ -220,6 +221,27 @@ public class TileInstance {
 			ti.objs.set(ti.objs.indexOf(toDel), replacement);
 		else
 			ti.objs.remove(toDel);
+		return dmm.getKeyForInstance(ti);
+	}
+	
+	public String deleteAllInFilter(FastDMM editor) {
+		TileInstance ti = new TileInstance(new ArrayList<>(), dmm);
+		boolean hasTurf = false;
+		boolean hasArea = false;
+		for(ObjInstance obj : objs) {
+			if(!editor.inFilter(obj)) {
+				ti.objs.add(obj);
+				if(obj.istype("/turf"))
+					hasTurf = true;
+				if(obj.istype("/area"))
+					hasArea = true;
+			}
+		}
+		if(!hasTurf)
+			ti.objs.add(dmm.objTree.get(dmm.objTree.get("/world").getVar("turf")));
+		if(!hasArea)
+			ti.objs.add(dmm.objTree.get(dmm.objTree.get("/world").getVar("area")));
+		ti.sortObjs();
 		return dmm.getKeyForInstance(ti);
 	}
 	
