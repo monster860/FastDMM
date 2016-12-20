@@ -153,7 +153,7 @@ public class FloatingSelection {
 			ti.sortObjs();			
 			String newKey = map.getKeyForInstance(ti);
 			if(newKey != null)
-				map.map.put(l, newKey);
+				map.putMap(l, newKey);
 		}
 	}
 	
