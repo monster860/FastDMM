@@ -34,4 +34,8 @@ public class DefaultPlacementMode implements PlacementMode {
 	public void addToTileMenu(FastDMM editor, Location mapLocation, TileInstance instance, JPopupMenu menu) {
 	}
 
+	@Override
+	public void flush(FastDMM editor) {
+	}
+
 }

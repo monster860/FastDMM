@@ -342,6 +342,9 @@ public class FastDMM extends JFrame implements ActionListener, TreeSelectionList
 			openDMM();
 		} else if ("save".equals(e.getActionCommand())) {
 			try {
+				synchronized(this) {
+					placementMode.flush(this);
+				}
 				dmm.save();
 			} catch (Exception ex) {
 				StringWriter sw = new StringWriter();
@@ -379,6 +382,7 @@ public class FastDMM extends JFrame implements ActionListener, TreeSelectionList
 			}
 
 			synchronized (this) {
+				placementMode.flush(this);
 				try {
 					dmm = new DMM(new File(dme.getParentFile(), usePath), objTree, this);
 					dmm.setSize(1, 1, 1, maxX, maxY, maxZ);

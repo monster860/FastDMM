@@ -105,41 +105,137 @@ public class SelectPlacementMode implements PlacementMode {
 
 	@Override
 	public void addToTileMenu(FastDMM editor, Location mapLocation, TileInstance instance, JPopupMenu menu) {
+		this.editor = editor;
 		if(selection.contains(mapLocation)) {
 			JMenuItem item = new JMenuItem("Delete in Selection");
-			item.addActionListener(new SelectPlacementMode.SelectDeleteListener(editor, this));
+			item.addActionListener(new SelectPlacementMode.SelectListener(editor, this, true, false));
 			menu.add(item);
+			item = new JMenuItem("Copy Selection");
+			item.addActionListener(new SelectPlacementMode.SelectListener(editor, this, false, true));
+			menu.add(item);
+			item = new JMenuItem("Cut Selection");
+			item.addActionListener(new SelectPlacementMode.SelectListener(editor, this, true, true));
+			menu.add(item);
+		}
+		if(floatSelect != null && mapLocation.x >= floatSelect.x && mapLocation.x >= floatSelect.x && 
+			mapLocation.x < (floatSelect.x+floatSelect.width) && mapLocation.y < (floatSelect.y+floatSelect.height)) {
+			
+			JMenuItem item = new JMenuItem("Delete in Selection");
+			item.addActionListener(new SelectPlacementMode.FloatingSelectionListener(editor, this, true, false));
+			menu.add(item);
+			item = new JMenuItem("Copy Selection");
+			item.addActionListener(new SelectPlacementMode.FloatingSelectionListener(editor, this, false, true));
+			menu.add(item);
+			item = new JMenuItem("Cut Selection");
+			item.addActionListener(new SelectPlacementMode.FloatingSelectionListener(editor, this, true, true));
+			menu.add(item);
+		}
+		JMenuItem item = new JMenuItem("Paste");
+		item.addActionListener(new SelectPlacementMode.PasteListener(editor, this, mapLocation));
+		menu.add(item);
+	}
+	
+	@Override
+	public void flush(FastDMM editor) {
+		if(floatSelect != null) {
+			floatSelect.anchor(editor.dmm);
 		}
 	}
 
-	public class SelectDeleteListener implements ActionListener {
+
+	public static class SelectListener implements ActionListener {
 		FastDMM editor;
 		SelectPlacementMode selection;
+		boolean doDelete;
+		boolean doCopy;
 		
-		public SelectDeleteListener(FastDMM editor, SelectPlacementMode selection) {
+		public SelectListener(FastDMM editor, SelectPlacementMode selection, boolean doDelete, boolean doCopy) {
 			this.editor = editor;
 			this.selection = selection;
+			this.doDelete = doDelete;
+			this.doCopy = doCopy;
 		}
 		
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			if(editor.dmm == null)
-				return;
 			synchronized(editor) {
-				for(Location l : selection.selection) {
-					String key = editor.dmm.map.get(l);
-					if(key == null)
-						continue;
-					TileInstance ti = editor.dmm.instances.get(key);
-					if(ti == null)
-						continue;
-				
-					String newKey = ti.deleteAllInFilter(editor);
-				
-					editor.dmm.putMap(l, newKey);
+				if(editor.dmm == null)
+					return;
+				if(doCopy) {
+					new FloatingSelection(editor.dmm, selection.selection, editor).toClipboard();;
+				}
+				if(doDelete) {
+					for(Location l : selection.selection) {
+						String key = editor.dmm.map.get(l);
+						if(key == null)
+							continue;
+						TileInstance ti = editor.dmm.instances.get(key);
+						if(ti == null)
+							continue;
+					
+						String newKey = ti.deleteAllInFilter(editor);
+					
+						editor.dmm.putMap(l, newKey);
+					}
+					selection.clearSelection();
 				}
 			}
-			selection.clearSelection();
+		}
+	}
+	
+	public static class FloatingSelectionListener implements ActionListener {
+		FastDMM editor;
+		SelectPlacementMode selection;
+		boolean doDelete;
+		boolean doCopy;
+		
+		public FloatingSelectionListener(FastDMM editor, SelectPlacementMode selection, boolean doDelete, boolean doCopy) {
+			this.editor = editor;
+			this.selection = selection;
+			this.doDelete = doDelete;
+			this.doCopy = doCopy;
+		}
+		
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			synchronized(editor) {
+				if(editor.dmm == null)
+					return;
+				if(doCopy) {
+					selection.floatSelect.toClipboard();
+				}
+				if(doDelete) {
+					selection.floatSelect = null;
+				}
+			}
+		}
+	}
+	
+	public static class PasteListener implements ActionListener {
+		FastDMM editor;
+		SelectPlacementMode selection;
+		Location mapLocation;
+		
+		public PasteListener(FastDMM editor, SelectPlacementMode selection, Location l) {
+			this.editor = editor;
+			this.selection = selection;
+			this.mapLocation = l;
+		}
+		
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			synchronized(editor) {
+				if(editor.dmm == null)
+					return;
+				FloatingSelection newFloatSel = FloatingSelection.fromClipboard(editor.objTree,editor.dmm);
+				if(newFloatSel == null)
+					return;
+				newFloatSel.x = mapLocation.x-(newFloatSel.width/2);
+				newFloatSel.y = mapLocation.y-(newFloatSel.height/2);
+				newFloatSel.z = mapLocation.z;
+				selection.clearSelection();
+				selection.floatSelect = newFloatSel;
+			}
 		}
 	}
 }

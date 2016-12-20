@@ -17,4 +17,6 @@ public interface PlacementMode {
 	public int visualize(Set<RenderInstance> rendInstanceSet, int currCreationIndex);
 	// Called to add things to a tile's context menu (Not an object's, a tile's)
 	public void addToTileMenu(FastDMM editor, Location mapLocation, TileInstance instance, JPopupMenu menu);
+	// Called to flush the data
+	public void flush(FastDMM editor);
 }

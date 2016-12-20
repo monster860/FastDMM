@@ -17,6 +17,8 @@ public class PlacementModeListener implements ActionListener {
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		synchronized(editor) {
+			if(editor.placementMode != null)
+				editor.placementMode.flush(editor);
 			editor.placementMode = mode;
 		}
 	}

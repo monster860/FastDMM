@@ -1,23 +1,33 @@
 package com.github.monster860.fastdmm.editing;
 
 import java.awt.Color;
+import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.StringSelection;
+import java.awt.datatransfer.UnsupportedFlavorException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.Set;
+
+import org.json.JSONObject;
 
 import com.github.monster860.fastdmm.FastDMM;
 import com.github.monster860.fastdmm.Util;
 import com.github.monster860.fastdmm.dmirender.DMI;
-import com.github.monster860.fastdmm.dmirender.IconState;
 import com.github.monster860.fastdmm.dmirender.IconSubstate;
 import com.github.monster860.fastdmm.dmirender.RenderInstance;
 import com.github.monster860.fastdmm.dmmmap.DMM;
 import com.github.monster860.fastdmm.dmmmap.Location;
 import com.github.monster860.fastdmm.dmmmap.TileInstance;
 import com.github.monster860.fastdmm.objtree.ObjInstance;
+import com.github.monster860.fastdmm.objtree.ObjectTree;
 
 public class FloatingSelection {
 	int x,y,z,width,height;
@@ -25,6 +35,7 @@ public class FloatingSelection {
 	int colorIdx = 0;
 	int colorDir = 1;
 	
+	public FloatingSelection() { }
 	public FloatingSelection(DMM map, Set<Location> selection, FastDMM editor) {
 		int minx = 123456;
 		int miny = 123456;
@@ -65,7 +76,7 @@ public class FloatingSelection {
 				}
 			}
 			
-			objects.put(new Location(l.x-x,l.y-y,z), newTi);
+			objects.put(new Location(l.x-x,l.y-y,1), newTi);
 		}
 	}
 	
@@ -144,5 +155,56 @@ public class FloatingSelection {
 			if(newKey != null)
 				map.map.put(l, newKey);
 		}
+	}
+	
+	public void toClipboard() {
+		JSONObject json = new JSONObject();
+		json.put("width", width);
+		json.put("height", height);
+		for(Entry<Location,TileInstance> entry : objects.entrySet()) {
+			Location l = entry.getKey();
+			json.put(l.x+","+l.y, entry.getValue().toString());
+		}
+		StringSelection sel = new StringSelection(json.toString());
+		Toolkit.getDefaultToolkit().getSystemClipboard().setContents(sel, sel);
+	}
+	
+	public static FloatingSelection fromClipboard(ObjectTree objTree, DMM map) {
+		FloatingSelection floatSel = new FloatingSelection();
+		Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+		if(!clipboard.isDataFlavorAvailable(DataFlavor.stringFlavor))
+			return null;
+		String clipboardVal = null;
+		try {
+			clipboardVal = (String)clipboard.getData(DataFlavor.stringFlavor);
+		} catch (UnsupportedFlavorException | IOException e) {
+			e.printStackTrace();
+			return null;
+		}
+		
+		JSONObject json;
+		try {
+			json = new JSONObject(clipboardVal);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+		
+		if(!json.has("width") && !json.has("height"))
+			return null;
+		
+		floatSel.width = json.getInt("width");
+		floatSel.height = json.getInt("height");
+		
+		for(String key : json.keySet()) {
+			Matcher m = Pattern.compile("(\\-?\\d+),(\\-?\\d+)").matcher(key);
+			if(m.matches()) {
+				Location l = new Location(Integer.parseInt(m.group(1)),Integer.parseInt(m.group(2)),1);
+				TileInstance ti = TileInstance.fromString(json.getString(key), objTree, map);
+				floatSel.objects.put(l,ti);
+			}
+		}
+		
+		return floatSel;
 	}
 }
