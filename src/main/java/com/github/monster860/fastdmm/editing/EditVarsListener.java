@@ -47,7 +47,7 @@ public class EditVarsListener implements ActionListener {
 				}
 			}
 			
-			String newKey = ti.replaceObject(oInstance, mt);
+			String newKey = ti.replaceObject(oInstance, mt.vars.size() != 0 ? mt : mt.parent);
 			
 			editor.dmm.putMap(location, newKey);
 		}

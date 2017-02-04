@@ -5,22 +5,20 @@ import java.util.*;
 import javax.swing.table.AbstractTableModel;
 
 import com.github.monster860.fastdmm.objtree.ModifiedType;
+import com.github.monster860.fastdmm.objtree.ObjectTree;
 
 public class ModifiedTypeTableModel extends AbstractTableModel {
 	private static final long serialVersionUID = 3829092639624884439L;
 	
 	public ModifiedType type;
-	public Map<String, String> allVars = new TreeMap<>();
 	
-	private List<String> displayedKeys = new ArrayList<>();
+	private List<Object> displayedKeys = new ArrayList<>();
 	private List<Object> displayedVals = new ArrayList<>();
 	
 	public boolean doReturnTrue = false;
 	
 	public ModifiedTypeTableModel(ModifiedType mt) {
 		type = mt;
-		allVars = mt.parent.getAllVars();
-		allVars.putAll(mt.vars);
 		rebuildTableList();
 	}
 	
@@ -28,11 +26,31 @@ public class ModifiedTypeTableModel extends AbstractTableModel {
 		displayedKeys.clear();
 		displayedVals.clear();
 		
-		for(Map.Entry<String,String> ent : allVars.entrySet()) {
-			if(ent.getKey().equals("type") || ent.getKey().equals("parentType"))
-				continue; // These vars are represented in the object tree for the sole purpose of compatibility with byond.
-			displayedKeys.add(ent.getKey());
-			displayedVals.add(type.vars.containsKey(ent.getKey()) ? new ModifiedTypeRenderer.BoldString(ent.getValue()) : ent.getValue());
+		List<ObjectTree.Item> parentTypes = new ArrayList<>();
+		for(ObjectTree.Item currItem = type.parent; currItem != null ;currItem = currItem.parent) {
+			parentTypes.add(0, currItem);
+		}
+		
+		Set<String> usedVars = new HashSet<>();
+		usedVars.add("type"); // These vars are represented in the object tree for the sole purpose of compatibility with games that modify parentType.
+		usedVars.add("parentType");
+		
+		for(ObjectTree.Item currItem : parentTypes) {
+			TreeMap<String, String> sortedVars = new TreeMap<String, String>();
+			for(Map.Entry<String,String> ent : currItem.vars.entrySet()) {
+				if(usedVars.contains(ent.getKey()))
+					continue;
+				usedVars.add(ent.getKey());
+				sortedVars.put(ent.getKey(), type.getVar(ent.getKey()));
+			}
+			if(sortedVars.size() == 0)
+				continue;
+			displayedKeys.add(new ModifiedTypeRenderer.TypeHeaderString(currItem.typeString()));
+			displayedVals.add(new ModifiedTypeRenderer.TypeHeaderString(""));
+			for(Map.Entry<String,String> ent : sortedVars.entrySet()) {
+				displayedKeys.add(ent.getKey());
+				displayedVals.add(type.vars.containsKey(ent.getKey()) ? new ModifiedTypeRenderer.BoldString(ent.getValue()) : ent.getValue());
+			}
 		}
 		this.fireTableDataChanged();
 	}
@@ -61,6 +79,8 @@ public class ModifiedTypeTableModel extends AbstractTableModel {
 	public boolean isCellEditable(int rowIndex, int columnIndex) {
 		if(columnIndex != 1)
 			return false;
+		if(displayedVals.get(rowIndex) instanceof ModifiedTypeRenderer.TypeHeaderString)
+			return false;
 		return true;
 	}
 	
@@ -68,7 +88,9 @@ public class ModifiedTypeTableModel extends AbstractTableModel {
 	public void setValueAt(Object value, int rowIndex, int columnIndex) {
 		if(columnIndex != 1)
 			return;
-		String key = displayedKeys.get(rowIndex);
+		if(displayedVals.get(rowIndex) instanceof ModifiedTypeRenderer.TypeHeaderString)
+			return;
+		String key = displayedKeys.get(rowIndex).toString();
 		type.vars.put(key, value.toString());
 		displayedVals.set(rowIndex, new ModifiedTypeRenderer.BoldString(value.toString()));
 	}

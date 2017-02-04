@@ -1,13 +1,8 @@
 package com.github.monster860.fastdmm.dmmmap;
 
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
 /**
  * Represents a 3-dimensional position in a DMM file.
  */
-@Data
-@NoArgsConstructor
 public class Location {
 
     public int x;
@@ -57,5 +52,20 @@ public class Location {
         if ((dir & 8) != 0)
             l.x--;
         return l;
+    }
+    
+    @Override
+    public boolean equals(Object other) {
+    	if(!(other instanceof Location))
+    		return false;
+    	if(other == this)
+    		return false;
+    	Location o = (Location)other;
+    	return x == o.x && y == o.y && z == o.z;
+    }
+    
+    @Override
+    public int hashCode() {
+    	return (x<<16) + (y<<8) + (z);
     }
 }

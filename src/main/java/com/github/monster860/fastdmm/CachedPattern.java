@@ -1,16 +1,11 @@
 package com.github.monster860.fastdmm;
 
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
  * Simple wrapper to lazily compile a Pattern
  */
-@Data
-@NoArgsConstructor
 public class CachedPattern {
 
     private String regexp;
@@ -25,6 +20,8 @@ public class CachedPattern {
     public CachedPattern(String regexp) {
         this.regexp = regexp;
     }
+    
+    public CachedPattern() {}
 
     /**
      * Switches the ignoreCase setting on the matcher.
