@@ -1,4 +1,4 @@
-package com.github.monster860.fastdmm.editing;
+package com.github.monster860.fastdmm.editing.placement;
 
 import java.awt.Color;
 import java.util.HashMap;
@@ -44,10 +44,10 @@ public class DirectionalPlacementHandler implements PlacementHandler {
 			}
 			ModifiedType mt = ModifiedType.deriveFrom(oInstance);
 			mt.vars.put("dir", "" + dir);
-			if(editor.dmm.modifiedTypes.containsKey(mt.toString())) {
-				mt = editor.dmm.modifiedTypes.get(mt.toString());
+			if(editor.modifiedTypes.containsKey(mt.toString())) {
+				mt = editor.modifiedTypes.get(mt.toString());
 			} else {
-				editor.dmm.modifiedTypes.put(mt.toString(), mt);
+				editor.modifiedTypes.put(mt.toString(), mt);
 				if(mt.parent != null) {
 					mt.parent.addInstance(mt);
 				}

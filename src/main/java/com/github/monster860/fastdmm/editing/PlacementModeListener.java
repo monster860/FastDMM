@@ -4,6 +4,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import com.github.monster860.fastdmm.FastDMM;
+import com.github.monster860.fastdmm.editing.placement.PlacementMode;
 
 public class PlacementModeListener implements ActionListener {
 	private FastDMM editor;

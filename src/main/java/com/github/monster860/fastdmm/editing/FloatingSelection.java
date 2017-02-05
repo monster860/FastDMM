@@ -30,10 +30,10 @@ import com.github.monster860.fastdmm.objtree.ObjInstance;
 import com.github.monster860.fastdmm.objtree.ObjectTree;
 
 public class FloatingSelection {
-	int x,y,z,width,height;
+	public int x,y,z,width,height;
 	Map<Location, TileInstance> objects = new HashMap<Location, TileInstance>();
-	int colorIdx = 0;
-	int colorDir = 1;
+	public int colorIdx = 0;
+	public int colorDir = 1;
 	
 	public FloatingSelection() { }
 	public FloatingSelection(DMM map, Set<Location> selection, FastDMM editor) {
@@ -60,7 +60,6 @@ public class FloatingSelection {
 		y = miny;
 		width = maxx-minx+1;
 		height = maxy-miny+1;
-		System.out.println(x+","+y+","+width+","+height);
 		for(Location l : selection) {
 			String key = map.map.get(l);
 			if(key == null)

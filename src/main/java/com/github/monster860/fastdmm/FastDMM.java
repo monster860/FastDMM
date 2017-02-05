@@ -3,6 +3,7 @@ package com.github.monster860.fastdmm;
 import java.awt.BorderLayout;
 import java.awt.Canvas;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Font;
 import java.awt.KeyboardFocusManager;
 import java.awt.event.*;
@@ -21,11 +22,20 @@ import com.github.monster860.fastdmm.dmmmap.DMM;
 import com.github.monster860.fastdmm.dmmmap.Location;
 import com.github.monster860.fastdmm.dmmmap.TileInstance;
 import com.github.monster860.fastdmm.editing.*;
+import com.github.monster860.fastdmm.editing.placement.DefaultPlacementMode;
+import com.github.monster860.fastdmm.editing.placement.DeletePlacementMode;
+import com.github.monster860.fastdmm.editing.placement.PlacementHandler;
+import com.github.monster860.fastdmm.editing.placement.PlacementMode;
+import com.github.monster860.fastdmm.editing.placement.SelectPlacementMode;
+import com.github.monster860.fastdmm.editing.ui.EditorTabComponent;
+import com.github.monster860.fastdmm.editing.ui.EmptyTabPanel;
+import com.github.monster860.fastdmm.editing.ui.NoDmeTreeModel;
+import com.github.monster860.fastdmm.editing.ui.ObjectTreeRenderer;
 import com.github.monster860.fastdmm.objtree.InstancesRenderer;
+import com.github.monster860.fastdmm.objtree.ModifiedType;
 import com.github.monster860.fastdmm.objtree.ObjInstance;
 import com.github.monster860.fastdmm.objtree.ObjectTree;
 import com.github.monster860.fastdmm.objtree.ObjectTreeParser;
-import com.github.monster860.fastdmm.objtree.ObjectTreeRenderer;
 
 import org.lwjgl.LWJGLException;
 import org.lwjgl.input.Keyboard;
@@ -37,9 +47,11 @@ import org.json.*;
 import static org.lwjgl.opengl.GL11.*;
 
 public class FastDMM extends JFrame implements ActionListener, TreeSelectionListener, ListSelectionListener {
-
+	private static final long serialVersionUID = 1L;
 	public File dme;
 	public DMM dmm;
+	public List<DMM> loadedMaps = new ArrayList<DMM>();
+	public Map<String, ModifiedType> modifiedTypes = new HashMap<>();
 
 	public float viewportX = 0;
 	public float viewportY = 0;
@@ -59,6 +71,8 @@ public class FastDMM extends JFrame implements ActionListener, TreeSelectionList
 	private JLabel coords;
 	public JLabel selection;
 	private JTabbedPane leftTabs;
+	private JPanel editorPanel;
+	private JTabbedPane editorTabs;
 	private Canvas canvas;
 
 	private JMenuBar menuBar;
@@ -170,8 +184,39 @@ public class FastDMM extends JFrame implements ActionListener, TreeSelectionList
 			leftTabs.addTab("Objects", objTreePanel);
 			leftTabs.addTab("Instances", instancesPanel);
 			leftPanel.add(leftTabs, BorderLayout.CENTER);
+			
+			editorPanel = new JPanel();
+			editorPanel.setLayout(new BorderLayout());
+			editorPanel.add(canvas, BorderLayout.CENTER);
+			
+			editorTabs = new JTabbedPane();
+			editorTabs.addChangeListener(new ChangeListener() {
+		        public void stateChanged(ChangeEvent e) {
+		        	if(editorTabs.getSelectedIndex() == -1) {
+		        		dmm = null;
+		        		FastDMM.this.setTitle(dme.getName().replaceFirst("[.][^.]+$", ""));
+		        		return;
+		        	}
+		        	if(loadedMaps.get(editorTabs.getSelectedIndex()) == dmm)
+		        		return;
+		            synchronized(FastDMM.this) {
+		            	if(dmm != null) {
+		            		dmm.storedViewportX = viewportX;
+		            		dmm.storedViewportY = viewportY;
+		            		dmm.storedViewportZoom = viewportZoom;
+		            	}
+		            	dmm = loadedMaps.get(editorTabs.getSelectedIndex());
+		            	viewportX = dmm.storedViewportX;
+		            	viewportY = dmm.storedViewportY;
+		            	viewportZoom = dmm.storedViewportZoom;
+		            	FastDMM.this.setTitle(dme.getName().replaceFirst("[.][^.]+$", "") + ": "
+								+ dmm.file.getName().replaceFirst("[.][^.]+$", ""));
+		            }
+		        }
+		    });
+			editorPanel.add(editorTabs, BorderLayout.NORTH);
 
-			getContentPane().add(canvas, BorderLayout.CENTER);
+			getContentPane().add(editorPanel, BorderLayout.CENTER);
 			getContentPane().add(leftPanel, BorderLayout.WEST);
 
 			setSize(1280, 720);
@@ -443,6 +488,10 @@ public class FastDMM extends JFrame implements ActionListener, TreeSelectionList
 		menuRecent.setEnabled(false);
 		menuRecentMaps.setEnabled(false);
 		menuRecentMaps.setVisible(false);
+		modifiedTypes = new HashMap<>();
+		while(editorTabs.getTabCount() > 0)
+			editorTabs.removeTabAt(0);
+		loadedMaps.clear();
 		// PARSE TREE
 		new Thread() {
 			public void run() {
@@ -491,12 +540,36 @@ public class FastDMM extends JFrame implements ActionListener, TreeSelectionList
 
 	private void openDMM(File filetoopen) {
 		synchronized (this) {
+			for(DMM map : loadedMaps) {
+				try {
+					if(map.file.getCanonicalPath().equals(filetoopen.getCanonicalPath())) {
+						dmm = map;
+						editorTabs.setSelectedIndex(loadedMaps.indexOf(map));
+						return;
+					}
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+			int insertIndex = loadedMaps.size();
+			if(dmm != null)
+				insertIndex = loadedMaps.contains(dmm) ? insertIndex : loadedMaps.indexOf(dmm);
+			
 			dmm = null;
 			areMenusFrozen = true;
 			DMM newDmm;
 			try {
 				newDmm = new DMM(filetoopen, objTree, this);
 				dmm = newDmm;
+				// Tabs!
+				loadedMaps.add(dmm);
+				int mapIndex = loadedMaps.indexOf(dmm);;
+				editorTabs.insertTab(dmm.relPath, null, new EmptyTabPanel(editorPanel), dmm.relPath, mapIndex);
+				editorTabs.setTabComponentAt(mapIndex, new EditorTabComponent(this, dmm));
+				editorTabs.setSelectedIndex(mapIndex);
+				viewportX = 0;
+				viewportY = 0;
+				viewportZoom = 32;
 				menuItemExpand.setEnabled(true);
 			} catch (Exception ex) {
 				StringWriter sw = new StringWriter();
@@ -516,7 +589,7 @@ public class FastDMM extends JFrame implements ActionListener, TreeSelectionList
 					spm.clearSelection();
 				}
 				addToRecent(dme, dmm);
-				FastDMM.this.setTitle(dme.getName().replaceFirst("[.][^.]+$", "") + ": "
+				this.setTitle(dme.getName().replaceFirst("[.][^.]+$", "") + ": "
 						+ dmm.file.getName().replaceFirst("[.][^.]+$", ""));
 				initRecent("both");
 			}
@@ -535,6 +608,15 @@ public class FastDMM extends JFrame implements ActionListener, TreeSelectionList
 			return;
 
 		openDMM(dmmList.getSelectedValue());
+	}
+	
+	public void closeTab(DMM map) {
+		synchronized(this) {
+			int idx = loadedMaps.indexOf(map);
+			loadedMaps.remove(idx);
+			dmm = null;
+			editorTabs.removeTabAt(idx);
+		}
 	}
 
 	public static List<File> getDmmFiles(File directory) {

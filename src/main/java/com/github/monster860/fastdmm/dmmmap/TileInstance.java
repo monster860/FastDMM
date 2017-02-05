@@ -98,7 +98,7 @@ public class TileInstance {
                     return (int)Math.signum(layerA - layerB);
                 } catch (Exception e) {
                     if(a != null && b != null) {
-                        System.out.println("Error with layers " + a.getVar("layer") + ", " + b.getVar("layer"));
+                        System.err.println("Error with layers " + a.getVar("layer") + ", " + b.getVar("layer"));
                     }
                     return 0;
                 }

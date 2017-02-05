@@ -38,10 +38,10 @@ public class EditVarsListener implements ActionListener {
 		if(!mt.viewVariables(editor))
 			return;
 		synchronized(editor) {	
-			if(editor.dmm.modifiedTypes.containsKey(mt.toString())) {
-				mt = editor.dmm.modifiedTypes.get(mt.toString());
+			if(editor.modifiedTypes.containsKey(mt.toString())) {
+				mt = editor.modifiedTypes.get(mt.toString());
 			} else {
-				editor.dmm.modifiedTypes.put(mt.toString(), mt);
+				editor.modifiedTypes.put(mt.toString(), mt);
 				if(mt.parent != null) {
 					mt.parent.addInstance(mt);
 				}

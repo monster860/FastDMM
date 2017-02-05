@@ -14,8 +14,8 @@ import javax.swing.JTable;
 
 import com.github.monster860.fastdmm.FastDMM;
 import com.github.monster860.fastdmm.dmmmap.DMM;
-import com.github.monster860.fastdmm.editing.ModifiedTypeRenderer;
-import com.github.monster860.fastdmm.editing.ModifiedTypeTableModel;
+import com.github.monster860.fastdmm.editing.ui.ModifiedTypeRenderer;
+import com.github.monster860.fastdmm.editing.ui.ModifiedTypeTableModel;
 
 public class ModifiedType extends ObjInstance {
 	public ModifiedType(Map<String,String> vars, String parentType) {
@@ -37,10 +37,10 @@ public class ModifiedType extends ObjInstance {
 			}
 			ModifiedType mt = new ModifiedType(vars, m.group(1));
 			mt.parent = objtree.get(m.group(1));
-			if(dmm.modifiedTypes.containsKey(mt.toString())) {
-				mt = dmm.modifiedTypes.get(mt.toString());
+			if(dmm.editor.modifiedTypes.containsKey(mt.toString())) {
+				mt = dmm.editor.modifiedTypes.get(mt.toString());
 			} else {
-				dmm.modifiedTypes.put(mt.toString(), mt);
+				dmm.editor.modifiedTypes.put(mt.toString(), mt);
 				if(mt.parent != null) {
 					mt.parent.addInstance(mt);
 				}

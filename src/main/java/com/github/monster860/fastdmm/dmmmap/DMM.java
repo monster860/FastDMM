@@ -6,6 +6,8 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.regex.*;
 
@@ -41,17 +43,27 @@ public class DMM {
 	public Map<Location, String> map = new HashMap<>();
 	public List<String> unusedKeys = new ArrayList<>();
 	
-	public Map<String, ModifiedType> modifiedTypes = new HashMap<>();
-	
 	public ObjectTree objTree;
 	
 	public File file;
 	boolean isTGM = false;
 	
+	public String relPath = "";
+	
+	public float storedViewportX = 0;
+	public float storedViewportY = 0;
+	public int storedViewportZoom = 32;
+	
 	public DMM(File file, ObjectTree objTree, FastDMM editor) throws IOException {
 		this.file = file;
 		this.editor = editor;
 		this.objTree = objTree;
+		
+		Path pathAbsolute = Paths.get(file.getAbsolutePath());
+        Path pathBase = Paths.get(new File(objTree.dmePath).getParent());
+        Path pathRelative = pathBase.relativize(pathAbsolute);
+        relPath = pathRelative.toString();
+		
 		if(!file.exists()) {
 			
 			Set<String> unusedKeysSet = new TreeSet<>();

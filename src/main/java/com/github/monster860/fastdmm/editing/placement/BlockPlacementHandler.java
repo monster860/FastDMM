@@ -1,4 +1,4 @@
-package com.github.monster860.fastdmm.editing;
+package com.github.monster860.fastdmm.editing.placement;
 
 import java.awt.Color;
 import java.util.HashSet;

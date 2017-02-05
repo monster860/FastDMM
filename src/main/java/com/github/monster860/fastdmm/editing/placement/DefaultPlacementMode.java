@@ -1,4 +1,4 @@
-package com.github.monster860.fastdmm.editing;
+package com.github.monster860.fastdmm.editing.placement;
 
 import java.util.Set;
 
@@ -10,17 +10,19 @@ import com.github.monster860.fastdmm.dmmmap.Location;
 import com.github.monster860.fastdmm.dmmmap.TileInstance;
 import com.github.monster860.fastdmm.objtree.ObjInstance;
 
-public class DeletePlacementMode implements PlacementMode {
+public class DefaultPlacementMode implements PlacementMode {
 
 	@Override
 	public PlacementHandler getPlacementHandler(FastDMM editor, ObjInstance instance, Location initialLocation) {
 		if(instance == null)
 			return null;
 		
-		if(editor.isShiftPressed)
-			return new DeleteBlockPlacementHandler();
+		if(editor.isCtrlPressed)
+			return new DirectionalPlacementHandler();
+		else if(editor.isShiftPressed)
+			return new BlockPlacementHandler();
 		else
-			return new DeletePlacementHandler();
+			return new DefaultPlacementHandler();
 	}
 
 	@Override

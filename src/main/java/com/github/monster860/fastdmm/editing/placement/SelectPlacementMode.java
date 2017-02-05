@@ -1,4 +1,4 @@
-package com.github.monster860.fastdmm.editing;
+package com.github.monster860.fastdmm.editing.placement;
 
 import java.awt.Color;
 import java.awt.event.ActionEvent;
@@ -14,6 +14,7 @@ import com.github.monster860.fastdmm.dmirender.IconState;
 import com.github.monster860.fastdmm.dmirender.RenderInstance;
 import com.github.monster860.fastdmm.dmmmap.Location;
 import com.github.monster860.fastdmm.dmmmap.TileInstance;
+import com.github.monster860.fastdmm.editing.FloatingSelection;
 import com.github.monster860.fastdmm.objtree.ObjInstance;
 
 public class SelectPlacementMode implements PlacementMode {

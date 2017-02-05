@@ -1,4 +1,4 @@
-package com.github.monster860.fastdmm.objtree;
+package com.github.monster860.fastdmm.editing.ui;
 
 import java.awt.Component;
 
@@ -8,6 +8,8 @@ import javax.swing.tree.DefaultTreeCellRenderer;
 import com.github.monster860.fastdmm.FastDMM;
 import com.github.monster860.fastdmm.dmirender.DMI;
 import com.github.monster860.fastdmm.dmirender.IconSubstate;
+import com.github.monster860.fastdmm.objtree.ObjectTree;
+import com.github.monster860.fastdmm.objtree.ObjectTree.Item;
 
 public class ObjectTreeRenderer extends DefaultTreeCellRenderer {
 	private static final long serialVersionUID = 931493078348635512L;
