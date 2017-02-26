@@ -35,7 +35,7 @@ public class DMI {
     public IconState defaultState;
 
     public int glID = -1;
-    BufferedImage image;
+    public BufferedImage image;
 
     public DMI(InputStream inputStream) throws IOException {
 

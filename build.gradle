@@ -7,7 +7,7 @@ apply plugin: 'java'
 apply plugin: 'application'
 
 group 'com.github.monster860'
-version '0.5.1'
+version '0.6'
 def javaLevel = 1.8
 def mainClass = 'com.github.monster860.fastdmm.FastDMM'
 def nativePaths = ['windows', 'linux', 'osx'].collect { 'build/natives/' + it }

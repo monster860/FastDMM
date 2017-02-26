@@ -5,11 +5,15 @@ import java.awt.Canvas;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Font;
+import java.awt.Graphics2D;
 import java.awt.KeyboardFocusManager;
 import java.awt.event.*;
+import java.awt.image.BufferedImage;
 import java.io.*;
 import java.nio.file.*;
 import java.util.*;
+
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -82,6 +86,7 @@ public class FastDMM extends JFrame implements ActionListener, TreeSelectionList
 	private JMenuItem menuItemOpen;
 	private JMenuItem menuItemSave;
 	private JMenuItem menuItemExpand;
+	private JMenuItem menuItemMapImage;
 
 	private JPopupMenu currPopup;
 
@@ -264,6 +269,14 @@ public class FastDMM extends JFrame implements ActionListener, TreeSelectionList
 			menuRecent.setMnemonic(KeyEvent.VK_O);
 			menuRecent.getPopupMenu().setLightWeightPopupEnabled(false);
 			menu.add(menuRecent);
+			
+			menu.addSeparator();
+			
+			menuItemMapImage = new JMenuItem("Create map image");
+			menuItemMapImage.setActionCommand("mapimage");
+			menuItemMapImage.addActionListener(FastDMM.this);
+			menuItemMapImage.setEnabled(false);
+			menu.add(menuItemMapImage);
 
 			initRecent("dme");
 
@@ -432,6 +445,7 @@ public class FastDMM extends JFrame implements ActionListener, TreeSelectionList
 					dmm = new DMM(new File(dme.getParentFile(), usePath), objTree, this);
 					dmm.setSize(1, 1, 1, maxX, maxY, maxZ);
 					menuItemExpand.setEnabled(true);
+					menuItemMapImage.setEnabled(true);
 				} catch (IOException ex) {
 					ex.printStackTrace();
 				}
@@ -465,6 +479,23 @@ public class FastDMM extends JFrame implements ActionListener, TreeSelectionList
 			synchronized (this) {
 				dmm.setSize(1, 1, 1, maxX, maxY, maxZ);
 			}
+		} else if("mapimage".equals(e.getActionCommand())) {
+			JFileChooser fc = new JFileChooser();
+			if (fc.getChoosableFileFilters().length > 0)
+				fc.removeChoosableFileFilter(fc.getChoosableFileFilters()[0]);
+			fc.addChoosableFileFilter(new FileNameExtensionFilter("Image (*.png)", "png"));
+			int returnVal = fc.showSaveDialog(this);
+			if (returnVal == JFileChooser.APPROVE_OPTION) {
+				BufferedImage mapImage;
+				synchronized(this) {
+					mapImage = createMapImage(1);
+				}
+				try {
+					ImageIO.write(mapImage, "png", fc.getSelectedFile());
+				} catch (IOException e1) {
+					e1.printStackTrace();
+				}
+			}
 		}
 	}
 
@@ -487,6 +518,7 @@ public class FastDMM extends JFrame implements ActionListener, TreeSelectionList
 		menuItemExpand.setEnabled(false);
 		menuRecent.setEnabled(false);
 		menuRecentMaps.setEnabled(false);
+		menuItemMapImage.setEnabled(false);
 		menuRecentMaps.setVisible(false);
 		modifiedTypes = new HashMap<>();
 		while(editorTabs.getTabCount() > 0)
@@ -571,6 +603,7 @@ public class FastDMM extends JFrame implements ActionListener, TreeSelectionList
 				viewportY = 0;
 				viewportZoom = 32;
 				menuItemExpand.setEnabled(true);
+				menuItemMapImage.setEnabled(true);
 			} catch (Exception ex) {
 				StringWriter sw = new StringWriter();
 				PrintWriter pw = new PrintWriter(sw);
@@ -578,6 +611,7 @@ public class FastDMM extends JFrame implements ActionListener, TreeSelectionList
 				JOptionPane.showMessageDialog(FastDMM.this, sw.getBuffer(), "Error", JOptionPane.ERROR_MESSAGE);
 				dmm = null;
 				menuItemExpand.setEnabled(false);
+				menuItemMapImage.setEnabled(false);
 			} finally {
 				areMenusFrozen = false;
 				if (!selMode) {
@@ -888,85 +922,12 @@ public class FastDMM extends JFrame implements ActionListener, TreeSelectionList
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 			hasLoadedImageThisFrame = false;
-
-			int currCreationIndex = 0;
-			Set<RenderInstance> rendInstanceSet = new TreeSet<>();
-			Location l = new Location(1, 1, 1);
-			if (dme != null && dmm != null) {
-				synchronized (this) {
-					for (int x = (int) Math.floor(viewportX - xScrOff - 2); x <= (int) Math
-							.ceil(viewportX + xScrOff + 2); x++) {
-						for (int y = (int) Math.floor(viewportY - yScrOff - 2); y <= (int) Math
-								.ceil(viewportY + yScrOff + 2); y++) {
-							l.x = x;
-							l.y = y;
-							String instanceID = dmm.map.get(l);
-							if (instanceID == null)
-								continue;
-							TileInstance instance = dmm.instances.get(instanceID);
-							if (instance == null)
-								continue;
-							for (ObjInstance oInstance : instance.getLayerSorted()) {
-								if (oInstance == null)
-									continue;
-								boolean valid = inFilter(oInstance);
-								if (!valid)
-									continue;
-								DMI dmi = getDmi(oInstance.getIcon(), true);
-								if (dmi == null)
-									continue;
-								String iconState = oInstance.getIconState();
-								IconSubstate substate = dmi.getIconState(iconState).getSubstate(oInstance.getDir());
-
-								RenderInstance ri = new RenderInstance(currCreationIndex++);
-								ri.layer = oInstance.getLayer();
-								ri.plane = oInstance.getPlane();
-								ri.x = x + (oInstance.getPixelX() / (float) objTree.icon_size);
-								ri.y = y + (oInstance.getPixelY() / (float) objTree.icon_size);
-								ri.substate = substate;
-								ri.color = oInstance.getColor();
-
-								rendInstanceSet.add(ri);
-							}
-
-							int dirs = 0;
-							for (int i = 0; i < 4; i++) {
-								int cdir = IconState.indexToDirArray[i];
-								Location l2 = l.getStep(cdir);
-								String instId = dmm.map.get(l2);
-								if (instId == null) {
-									dirs |= cdir;
-									continue;
-								}
-								TileInstance instance2 = dmm.instances.get(instId);
-								if (instance2 == null) {
-									dirs |= cdir;
-									continue;
-								}
-								if (!instance.getArea().equals(instance2.getArea())) {
-									dirs |= cdir;
-								}
-							}
-							if (dirs != 0) {
-								RenderInstance ri = new RenderInstance(currCreationIndex++);
-								ri.plane = 101;
-								ri.x = x;
-								ri.y = y;
-								ri.substate = interface_dmi.getIconState("" + dirs).getSubstate(2);
-								ri.color = new Color(200, 200, 200);
-
-								rendInstanceSet.add(ri);
-							}
-						}
-					}
-				}
-			}
-
-			if (currPlacementHandler != null) {
-				currCreationIndex = currPlacementHandler.visualize(rendInstanceSet, currCreationIndex);
-			}
-
-			currCreationIndex = placementMode.visualize(rendInstanceSet, currCreationIndex);
+			Set<RenderInstance> rendInstanceSet = buildViewport(true,
+					(int)Math.floor(viewportX - xScrOff - 2),
+					(int)Math.ceil(viewportX + xScrOff + 2),
+					(int)Math.floor(viewportY - yScrOff - 2),
+					(int)Math.ceil(viewportY + yScrOff + 2), 1, true);
+					
 
 			for (RenderInstance ri : rendInstanceSet) {
 				glColor3f(ri.color.getRed() / 255f, ri.color.getGreen() / 255f, ri.color.getBlue() / 255f);
@@ -1006,6 +967,89 @@ public class FastDMM extends JFrame implements ActionListener, TreeSelectionList
 
 			Display.sync(60);
 		}
+	}
+	
+	private Set<RenderInstance> buildViewport(boolean editingElements, int minx, int maxx, int miny, int maxy, int zlev, boolean glIcons) {
+		int currCreationIndex = 0;
+		Set<RenderInstance> rendInstanceSet = new TreeSet<>();
+		Location l = new Location(1, 1, zlev);
+		if (dme != null && dmm != null) {
+			synchronized (this) {
+				for (int x = minx; x <= maxx; x++) {
+					for (int y = miny; y <= maxy; y++) {
+						l.x = x;
+						l.y = y;
+						String instanceID = dmm.map.get(l);
+						if (instanceID == null)
+							continue;
+						TileInstance instance = dmm.instances.get(instanceID);
+						if (instance == null)
+							continue;
+						for (ObjInstance oInstance : instance.getLayerSorted()) {
+							if (oInstance == null)
+								continue;
+							boolean valid = inFilter(oInstance);
+							if (!valid)
+								continue;
+							DMI dmi = getDmi(oInstance.getIcon(), glIcons);
+							if (dmi == null)
+								continue;
+							String iconState = oInstance.getIconState();
+							IconSubstate substate = dmi.getIconState(iconState).getSubstate(oInstance.getDir());
+
+							RenderInstance ri = new RenderInstance(currCreationIndex++);
+							ri.layer = oInstance.getLayer();
+							ri.plane = oInstance.getPlane();
+							ri.x = x + (oInstance.getPixelX() / (float) objTree.icon_size);
+							ri.y = y + (oInstance.getPixelY() / (float) objTree.icon_size);
+							ri.substate = substate;
+							ri.color = oInstance.getColor();
+
+							rendInstanceSet.add(ri);
+						}
+						if(editingElements) {
+							int dirs = 0;
+							for (int i = 0; i < 4; i++) {
+								int cdir = IconState.indexToDirArray[i];
+								Location l2 = l.getStep(cdir);
+								String instId = dmm.map.get(l2);
+								if (instId == null) {
+									dirs |= cdir;
+									continue;
+								}
+								TileInstance instance2 = dmm.instances.get(instId);
+								if (instance2 == null) {
+									dirs |= cdir;
+									continue;
+								}
+								if (!instance.getArea().equals(instance2.getArea())) {
+									dirs |= cdir;
+								}
+							}
+							if (dirs != 0) {
+								RenderInstance ri = new RenderInstance(currCreationIndex++);
+								ri.plane = 101;
+								ri.x = x;
+								ri.y = y;
+								ri.substate = interface_dmi.getIconState("" + dirs).getSubstate(2);
+								ri.color = new Color(200, 200, 200);
+								
+								rendInstanceSet.add(ri);
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		if(editingElements) {
+			if (currPlacementHandler != null) {
+				currCreationIndex = currPlacementHandler.visualize(rendInstanceSet, currCreationIndex);
+			}
+			
+			currCreationIndex = placementMode.visualize(rendInstanceSet, currCreationIndex);
+		}
+		return rendInstanceSet;
 	}
 
 	private void addToRecent(File dme, DMM dmm) {
@@ -1211,6 +1255,45 @@ public class FastDMM extends JFrame implements ActionListener, TreeSelectionList
 				JOptionPane.showMessageDialog(FastDMM.this, sw.getBuffer(), "Error", JOptionPane.ERROR_MESSAGE);
 			}
 		}
+	}
+	
+	private BufferedImage createMapImage(int zlev) {
+		int imgwidth = (dmm.maxX+1-dmm.minX)*objTree.icon_size;
+		int imgheight = (dmm.maxY+1-dmm.minY)*objTree.icon_size;
+		
+		BufferedImage img = new BufferedImage(imgwidth, imgheight, BufferedImage.TYPE_INT_ARGB);
+		Graphics2D g = img.createGraphics();
+		
+		Set<RenderInstance> rendInstanceSet = buildViewport(false, dmm.minX, dmm.maxX, dmm.minY, dmm.maxY, 1, false);
+		
+		for (RenderInstance ri : rendInstanceSet) {
+			DMI dmi = ri.substate.dmi;
+			int px = (int)((ri.x - dmm.minX) * objTree.icon_size);
+			int py = (int)((dmm.maxY - ri.y + dmm.minY - 1) * objTree.icon_size) - (dmi.height - objTree.icon_size);
+			
+			if(ri.color.getRed() == 255 && ri.color.getGreen() == 255 && ri.color.getBlue() == 255) {
+				// Easy time!
+				g.drawImage(dmi.image, px, py, px+dmi.width, py+dmi.height, ri.substate.i_x1, ri.substate.i_y1, ri.substate.i_x2+1, ri.substate.i_y2+1, null);
+			} else {
+				float rm = ri.color.getRed() / 255f;
+				float gm = ri.color.getGreen() / 255f;
+				float bm = ri.color.getBlue() / 255f;
+				float am = ri.color.getAlpha() / 255f;
+				if(am == 0)
+					continue;
+				for(int x = 0; x < dmi.width; x++) {
+					for(int y = 0; y < dmi.height; y++) {
+						int pixel = dmi.image.getRGB(x+ri.substate.i_x1, y+ri.substate.i_y1);
+						if(((pixel >> 24) & 0xFF) == 0)
+							continue;
+						g.setColor(new Color((int)(((pixel >> 16) & 0xFF) * rm),(int)(((pixel >> 8) & 0xFF) * gm),(int)((pixel & 0xFF) * bm),(int)(((pixel >> 24) & 0xFF) * am)));
+						g.drawRect(px+x, py+y, 0, 0);
+					}
+				}
+			}
+		}
+		g.dispose();
+		return img;
 	}
 	
 	public boolean inFilter(ObjInstance i) {
