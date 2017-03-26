@@ -64,13 +64,16 @@ public class DefaultPlacementHandler implements PlacementHandler {
 
 	@Override
 	public void finalizePlacement() {
+		HashSet<Location> locations = new HashSet<Location>();
 		for(Location l : usedLocations) {
 			String key = editor.dmm.map.get(l);
 			if(key != null) {
 				TileInstance tInstance = editor.dmm.instances.get(key);
 				String newKey = tInstance.addObject(oInstance);
 				editor.dmm.putMap(l, newKey);
+				locations.add(l);
 			}
 		}
+		editor.addToUndoStack(new UndoablePlacement.Add(editor, oInstance, locations));
 	}
 }
