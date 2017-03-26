@@ -26,6 +26,7 @@ import com.github.monster860.fastdmm.dmirender.RenderInstance;
 import com.github.monster860.fastdmm.dmmmap.DMM;
 import com.github.monster860.fastdmm.dmmmap.Location;
 import com.github.monster860.fastdmm.dmmmap.TileInstance;
+import com.github.monster860.fastdmm.editing.placement.UndoablePlacement;
 import com.github.monster860.fastdmm.objtree.ObjInstance;
 import com.github.monster860.fastdmm.objtree.ObjectTree;
 
@@ -123,6 +124,7 @@ public class FloatingSelection {
 	}
 	
 	public void anchor(DMM map) {
+		HashMap<Location, String[]> changes = new HashMap<Location, String[]>();
 		for(Entry<Location,TileInstance> entry : objects.entrySet()) {
 			Location relL = entry.getKey();
 			Location l = new Location(x+relL.x,y+relL.y,z);
@@ -151,9 +153,13 @@ public class FloatingSelection {
 			ti.objs.addAll(addTi.objs);
 			ti.sortObjs();			
 			String newKey = map.getKeyForInstance(ti);
-			if(newKey != null)
+			String[] keys = {key, newKey};
+			if(newKey != null) {
 				map.putMap(l, newKey);
+				changes.put(l,  keys);
+			}
 		}
+		map.editor.addToUndoStack(new UndoablePlacement.Move(map.editor, changes));
 	}
 	
 	public void toClipboard() {

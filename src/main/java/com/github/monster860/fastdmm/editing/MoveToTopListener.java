@@ -1,39 +1,26 @@
 package com.github.monster860.fastdmm.editing;
 
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-
 import com.github.monster860.fastdmm.FastDMM;
 import com.github.monster860.fastdmm.dmmmap.Location;
 import com.github.monster860.fastdmm.dmmmap.TileInstance;
 import com.github.monster860.fastdmm.objtree.ObjInstance;
 
-public class MoveToTopListener implements ActionListener {
-	FastDMM editor;
-	Location location;
-	ObjInstance oInstance;
+public class MoveToTopListener extends SimpleContextMenuListener {
 	
 	public MoveToTopListener(FastDMM editor, Location mapLocation, ObjInstance instance) {
-		this.editor = editor;
-		this.location = mapLocation;
-		this.oInstance = instance;
+		super(editor, mapLocation, instance);
 	}
 	
 	@Override
-	public void actionPerformed(ActionEvent e) {
-		if(editor.dmm == null)
-			return;
+	public String doAction(String oldkey) {
 		synchronized(editor) {
-			String key = editor.dmm.map.get(location);
-			if(key == null)
-				return;
-			TileInstance ti = editor.dmm.instances.get(key);
+			TileInstance ti = editor.dmm.instances.get(oldkey);
 			if(ti == null)
-				return;
+				return null;
 			
 			String newKey = ti.moveObjToTop(oInstance);
-			
 			editor.dmm.putMap(location, newKey);
+			return newKey;
 		}
 	}
 }
