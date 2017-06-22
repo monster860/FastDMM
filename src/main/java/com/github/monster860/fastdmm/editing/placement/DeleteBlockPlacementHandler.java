@@ -56,6 +56,6 @@ public class DeleteBlockPlacementHandler implements PlacementHandler {
 					locations.add(l);
 				}
 			}
-		editor.addToUndoStack(new UndoablePlacement.Delete(editor, oInstance, locations));
+		editor.addToUndoStack(editor.dmm.popDiffs());
 	}
 }

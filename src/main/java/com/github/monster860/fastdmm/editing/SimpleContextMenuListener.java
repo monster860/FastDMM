@@ -5,14 +5,13 @@ import java.awt.event.ActionListener;
 
 import com.github.monster860.fastdmm.FastDMM;
 import com.github.monster860.fastdmm.dmmmap.Location;
-import com.github.monster860.fastdmm.editing.placement.UndoablePlacement;
 import com.github.monster860.fastdmm.objtree.ObjInstance;
 
 public abstract class SimpleContextMenuListener implements ActionListener {
 	
-	FastDMM editor;
-	Location location;
-	ObjInstance oInstance;
+	protected FastDMM editor;
+	protected Location location;
+	protected ObjInstance oInstance;
 	
 	private String oldkey;
 	private String newkey;
@@ -23,19 +22,13 @@ public abstract class SimpleContextMenuListener implements ActionListener {
 		this.oInstance = instance;
 	}
 	
-	public abstract String doAction(String oldKey);
+	public abstract void doAction();
 	
 	public void actionPerformed(ActionEvent e) {
 		if(editor.dmm == null)
 			return;
-		oldkey = editor.dmm.map.get(location);
-		if(oldkey == null){
-			return;
-		}
-		newkey = doAction(oldkey);
-		if(newkey != null && !newkey.equals(oldkey)) {
-			editor.addToUndoStack(new UndoablePlacement.Replace(editor, oldkey, newkey, location));
-		}
+		doAction();
+		editor.addToUndoStack(editor.dmm.popDiffs());
 	}
 	
 }

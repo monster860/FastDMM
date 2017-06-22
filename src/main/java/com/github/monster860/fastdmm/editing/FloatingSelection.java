@@ -26,7 +26,6 @@ import com.github.monster860.fastdmm.dmirender.RenderInstance;
 import com.github.monster860.fastdmm.dmmmap.DMM;
 import com.github.monster860.fastdmm.dmmmap.Location;
 import com.github.monster860.fastdmm.dmmmap.TileInstance;
-import com.github.monster860.fastdmm.editing.placement.UndoablePlacement;
 import com.github.monster860.fastdmm.objtree.ObjInstance;
 import com.github.monster860.fastdmm.objtree.ObjectTree;
 
@@ -159,7 +158,7 @@ public class FloatingSelection {
 				changes.put(l,  keys);
 			}
 		}
-		map.editor.addToUndoStack(new UndoablePlacement.Move(map.editor, changes));
+		map.editor.addToUndoStack(map.popDiffs());
 	}
 	
 	public void toClipboard() {

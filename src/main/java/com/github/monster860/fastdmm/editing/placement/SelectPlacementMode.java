@@ -46,7 +46,7 @@ public class SelectPlacementMode implements PlacementMode {
 					
 					editor.dmm.putMap(l, newKey);
 				}
-				editor.addToUndoStack(new UndoablePlacement.Move(editor, changes));
+				editor.addToUndoStack(editor.dmm.popDiffs());
 			}
 			clearSelection();
         }
@@ -188,7 +188,7 @@ public class SelectPlacementMode implements PlacementMode {
 						
 						editor.dmm.putMap(l, newKey);
 					}
-					editor.addToUndoStack(new UndoablePlacement.Move(editor, changes));
+					editor.addToUndoStack(editor.dmm.popDiffs());
 					selection.clearSelection();
 				}
 			}

@@ -13,19 +13,19 @@ public class EditVarsListener extends SimpleContextMenuListener {
 	}
 
 	@Override
-	public String doAction(String oldkey) {
+	public void doAction() {
 		TileInstance ti;
 		synchronized(editor) {
 			String key = editor.dmm.map.get(location);
 			if(key == null)
-				return null;
+				return;
 			ti = editor.dmm.instances.get(key);
 			if(ti == null)
-				return null;
+				return;
 		}
 		ModifiedType mt = ModifiedType.deriveFrom(oInstance);
 		if(!mt.viewVariables(editor))
-			return null;
+			return;
 
 		synchronized(editor) {
 			if(editor.modifiedTypes.containsKey(mt.toString())) {
@@ -40,6 +40,5 @@ public class EditVarsListener extends SimpleContextMenuListener {
 		String newKey = ti.replaceObject(oInstance, mt.vars.size() != 0 ? mt : mt.parent);
 		
 		editor.dmm.putMap(location, newKey);
-		return newKey;
 	}
 }

@@ -42,7 +42,7 @@ public class DeletePlacementHandler implements PlacementHandler {
 				}
 			}
 		}
-		editor.addToUndoStack(new UndoablePlacement.Delete(editor, oInstance, locations));
+		editor.addToUndoStack(editor.dmm.popDiffs());
 	}
 
 	@Override

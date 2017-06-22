@@ -12,15 +12,14 @@ public class MoveToBottomListener extends SimpleContextMenuListener {
 	}
 
 	@Override
-	public String doAction(String oldkey) {
+	public void doAction() {
 		synchronized(editor) {
-			TileInstance ti = editor.dmm.instances.get(oldkey);
+			TileInstance ti = editor.dmm.instances.get(editor.dmm.map.get(location));
 			if(ti == null)
-				return null;
+				return;
 			
 			String newKey = ti.moveObjToBottom(oInstance);
 			editor.dmm.putMap(location, newKey);
-			return newKey;
 		}
 	}
 }
