@@ -54,11 +54,11 @@ public class FastDMM extends JFrame implements ActionListener, TreeSelectionList
 	private static final long serialVersionUID = 1L;
 	public File dme;
 	public DMM dmm;
-	public List<DMM> loadedMaps = new ArrayList<DMM>();
+	public List<DMM> loadedMaps = new ArrayList<>();
 	public Map<String, ModifiedType> modifiedTypes = new HashMap<>();
 	
-	private Stack<Undoable> undostack = new Stack<Undoable>();
-	private Stack<Undoable> redostack = new Stack<Undoable>();
+	private Stack<Undoable> undostack = new Stack<>();
+	private Stack<Undoable> redostack = new Stack<>();
 
 	public float viewportX = 0;
 	public float viewportY = 0;
@@ -127,6 +127,10 @@ public class FastDMM extends JFrame implements ActionListener, TreeSelectionList
 
 		fastdmm.initSwing();
 		fastdmm.interface_dmi = new DMI(Util.getFile("interface.dmi"));
+
+		Thread autosaveThread = new Thread(new AutosaveDaemon(fastdmm));
+		autosaveThread.setDaemon(true);
+		autosaveThread.start();
 
 		try {
 			fastdmm.init();
@@ -670,10 +674,25 @@ public class FastDMM extends JFrame implements ActionListener, TreeSelectionList
 	
 	public void closeTab(DMM map) {
 		synchronized(this) {
-			int idx = loadedMaps.indexOf(map);
-			loadedMaps.remove(idx);
-			dmm = null;
-			editorTabs.removeTabAt(idx);
+		    int selected = JOptionPane.showConfirmDialog(this, "Do you want to save your changes to " + map.file.getName() + "?", "Unsaved changes", JOptionPane.YES_NO_CANCEL_OPTION);
+			if(!(selected == JOptionPane.CANCEL_OPTION))
+            {
+                if(selected == JOptionPane.YES_OPTION)
+                {
+                    try
+                    {
+                        dmm.save();
+                    }
+                    catch(FileNotFoundException e)
+                    {
+                        JOptionPane.showMessageDialog(this, "Tried to save " + map.file.getName() + " but FileNotFoundException!", "Error", JOptionPane.ERROR_MESSAGE);
+                    }
+                }
+                int idx = loadedMaps.indexOf(map);
+                loadedMaps.remove(idx);
+                dmm = null;
+                editorTabs.removeTabAt(idx);
+            }
 		}
 	}
 
