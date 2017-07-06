@@ -696,6 +696,9 @@ public class FastDMM extends JFrame implements ActionListener, TreeSelectionList
 		if (interface_dmi != null) {
 			interface_dmi.createGL();
 		}
+		Thread autosaveThread = new Thread(new AutosaveDaemon(this));
+		autosaveThread.setDaemon(true);
+		autosaveThread.start();
 	}
 
 	private Map<String, DMI> dmis = new HashMap<>();
