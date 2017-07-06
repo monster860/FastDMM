@@ -20,17 +20,20 @@ public class AutosaveDaemon implements Runnable
             try
             {
                 Thread.sleep(60000);
-                editor.loadedMaps.forEach((dmm) ->
+                synchronized(editor)
                 {
-                    try
+                    editor.loadedMaps.forEach((dmm) ->
                     {
-                        dmm.save();
-                    }
-                    catch(FileNotFoundException e)
-                    {
-                        JOptionPane.showMessageDialog(editor, "Tried to save map " + dmm.file.getName() + " but got FileNotFoundException", "Error", JOptionPane.ERROR_MESSAGE);
-                    }
-                });
+                        try
+                        {
+                            dmm.save();
+                        }
+                        catch(FileNotFoundException e)
+                        {
+                            JOptionPane.showMessageDialog(editor, "Tried to save map " + dmm.file.getName() + " but got FileNotFoundException", "Error", JOptionPane.ERROR_MESSAGE);
+                        }
+                    });
+                }
             }
             catch(InterruptedException e)
             {
