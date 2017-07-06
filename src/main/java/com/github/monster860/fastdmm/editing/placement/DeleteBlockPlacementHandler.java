@@ -43,6 +43,7 @@ public class DeleteBlockPlacementHandler implements PlacementHandler {
 	public void finalizePlacement() {
 		Location l1 = new Location(Math.min(startLocation.x, endLocation.x),Math.min(startLocation.y, endLocation.y),Math.min(startLocation.z, endLocation.z));
 		Location l2 = new Location(Math.max(startLocation.x, endLocation.x),Math.max(startLocation.y, endLocation.y),Math.max(startLocation.z, endLocation.z));
+		HashSet<Location> locations = new HashSet<Location>();
 		for(int x = l1.x; x <= l2.x; x++)
 			for(int y = l1.y; y <= l2.y; y++) {
 				Location l = new Location(x, y, l1.z);
@@ -52,7 +53,9 @@ public class DeleteBlockPlacementHandler implements PlacementHandler {
 					TileInstance tInstance = editor.dmm.instances.get(key);
 					String newKey = tInstance.removeObjectOrSubtypes(oInstance);
 					editor.dmm.putMap(l, newKey);
+					locations.add(l);
 				}
 			}
+		editor.addToUndoStack(editor.dmm.popDiffs());
 	}
 }
