@@ -54,8 +54,11 @@ public class FastDMM extends JFrame implements ActionListener, TreeSelectionList
 	private static final long serialVersionUID = 1L;
 	public File dme;
 	public DMM dmm;
-	public List<DMM> loadedMaps = new ArrayList<DMM>();
+	public List<DMM> loadedMaps = new ArrayList<>();
 	public Map<String, ModifiedType> modifiedTypes = new HashMap<>();
+	
+	private Stack<Undoable> undostack = new Stack<>();
+	private Stack<Undoable> redostack = new Stack<>();
 
 	public float viewportX = 0;
 	public float viewportY = 0;
@@ -87,6 +90,8 @@ public class FastDMM extends JFrame implements ActionListener, TreeSelectionList
 	private JMenuItem menuItemSave;
 	private JMenuItem menuItemExpand;
 	private JMenuItem menuItemMapImage;
+	private JMenuItem menuItemUndo;
+	private JMenuItem menuItemRedo;
 
 	private JPopupMenu currPopup;
 
@@ -122,6 +127,10 @@ public class FastDMM extends JFrame implements ActionListener, TreeSelectionList
 
 		fastdmm.initSwing();
 		fastdmm.interface_dmi = new DMI(Util.getFile("interface.dmi"));
+
+		Thread autosaveThread = new Thread(new AutosaveDaemon(fastdmm));
+		autosaveThread.setDaemon(true);
+		autosaveThread.start();
 
 		try {
 			fastdmm.init();
@@ -279,7 +288,22 @@ public class FastDMM extends JFrame implements ActionListener, TreeSelectionList
 			menu.add(menuItemMapImage);
 
 			initRecent("dme");
+			
+			menu = new JMenu("Edit");
+			menuBar.add(menu);
 
+			menuItemUndo = new JMenuItem("Undo", KeyEvent.VK_U);
+			menuItemUndo.setActionCommand("undo");
+			menuItemUndo.addActionListener(FastDMM.this);
+			menuItemUndo.setEnabled(false);
+			menu.add(menuItemUndo);
+
+			menuItemRedo = new JMenuItem("Redo", KeyEvent.VK_R);
+			menuItemRedo.setActionCommand("redo");
+			menuItemRedo.addActionListener(FastDMM.this);
+			menuItemRedo.setEnabled(false);
+			menu.add(menuItemRedo);
+			
 			menu = new JMenu("Options");
 			menu.setMnemonic(KeyEvent.VK_O);
 			menuBar.add(menu);
@@ -496,6 +520,10 @@ public class FastDMM extends JFrame implements ActionListener, TreeSelectionList
 					e1.printStackTrace();
 				}
 			}
+		} else if("undo".equals(e.getActionCommand())) {
+			undoAction();
+		} else if("redo".equals(e.getActionCommand())) {
+			redoAction();
 		}
 	}
 
@@ -646,10 +674,25 @@ public class FastDMM extends JFrame implements ActionListener, TreeSelectionList
 	
 	public void closeTab(DMM map) {
 		synchronized(this) {
-			int idx = loadedMaps.indexOf(map);
-			loadedMaps.remove(idx);
-			dmm = null;
-			editorTabs.removeTabAt(idx);
+		    int selected = JOptionPane.showConfirmDialog(this, "Do you want to save your changes to " + map.file.getName() + "?", "Unsaved changes", JOptionPane.YES_NO_CANCEL_OPTION);
+			if(!(selected == JOptionPane.CANCEL_OPTION))
+            {
+                if(selected == JOptionPane.YES_OPTION)
+                {
+                    try
+                    {
+                        dmm.save();
+                    }
+                    catch(FileNotFoundException e)
+                    {
+                        JOptionPane.showMessageDialog(this, "Tried to save " + map.file.getName() + " but FileNotFoundException!", "Error", JOptionPane.ERROR_MESSAGE);
+                    }
+                }
+                int idx = loadedMaps.indexOf(map);
+                loadedMaps.remove(idx);
+                dmm = null;
+                editorTabs.removeTabAt(idx);
+            }
 		}
 	}
 
@@ -1313,4 +1356,37 @@ public class FastDMM extends JFrame implements ActionListener, TreeSelectionList
 		}
 		return valid;
 	}
+	
+	public void addToUndoStack(Undoable action){
+		if(action == null) {
+			return;
+		}
+		undostack.push(action);
+		redostack.clear();
+		menuItemUndo.setEnabled(true);
+		menuItemRedo.setEnabled(false);
+	}
+	
+	public boolean undoAction(){
+		if(undostack.empty()) {
+			return false;
+		}
+		Undoable action = undostack.pop();
+		redostack.push(action);
+		menuItemRedo.setEnabled(true);
+		menuItemUndo.setEnabled(!undostack.isEmpty());
+		return action.undo();
+	}
+	
+	public boolean redoAction(){
+		if(redostack.empty()) {
+			return false;
+		}
+		Undoable action = redostack.pop();
+		undostack.push(action);
+		menuItemUndo.setEnabled(true);
+		menuItemRedo.setEnabled(!redostack.isEmpty());
+		return action.redo();
+	}
+	
 }

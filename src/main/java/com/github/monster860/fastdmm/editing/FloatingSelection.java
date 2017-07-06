@@ -123,6 +123,7 @@ public class FloatingSelection {
 	}
 	
 	public void anchor(DMM map) {
+		HashMap<Location, String[]> changes = new HashMap<Location, String[]>();
 		for(Entry<Location,TileInstance> entry : objects.entrySet()) {
 			Location relL = entry.getKey();
 			Location l = new Location(x+relL.x,y+relL.y,z);
@@ -151,9 +152,13 @@ public class FloatingSelection {
 			ti.objs.addAll(addTi.objs);
 			ti.sortObjs();			
 			String newKey = map.getKeyForInstance(ti);
-			if(newKey != null)
+			String[] keys = {key, newKey};
+			if(newKey != null) {
 				map.putMap(l, newKey);
+				changes.put(l,  keys);
+			}
 		}
+		map.editor.addToUndoStack(map.popDiffs());
 	}
 	
 	public void toClipboard() {
