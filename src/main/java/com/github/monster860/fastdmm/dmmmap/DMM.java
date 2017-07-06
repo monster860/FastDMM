@@ -15,7 +15,7 @@ import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 
 import com.github.monster860.fastdmm.FastDMM;
-import com.github.monster860.fastdmm.objtree.ModifiedType;
+import com.github.monster860.fastdmm.editing.DMMDiff;
 import com.github.monster860.fastdmm.objtree.ObjectTree;
 
 // DMM loader - Where you will get confused by all the regex.
@@ -42,6 +42,7 @@ public class DMM {
 	public BiMap<String, TileInstance> instances = HashBiMap.create();
 	public Map<Location, String> map = new HashMap<>();
 	public List<String> unusedKeys = new ArrayList<>();
+	private Stack<DMMDiff> diffStack = new Stack<DMMDiff>();
 	
 	public ObjectTree objTree;
 	
@@ -184,13 +185,21 @@ public class DMM {
 		br.close();
 		
 		for(Map.Entry<Location, String> entry : reverseMap.entrySet()) {
-			putMap(new Location(entry.getKey().x, maxY+minY-entry.getKey().y, entry.getKey().z), entry.getValue());
+			putMap(new Location(entry.getKey().x, maxY+minY-entry.getKey().y, entry.getKey().z), entry.getValue(), false);
 		}
 	}
 	
 	public void putMap(Location l, String key) {
-		if(map.containsKey(l)) {
-			TileInstance i = instances.get(map.get(l));
+		putMap(l, key, true);
+	}
+	
+	public void putMap(Location l, String key, boolean addDiff) {
+		String oldKey = map.get(l);
+		if(addDiff){
+			diffStack.push(new DMMDiff.MapDiff(this, l, oldKey, key));
+		}
+		if(oldKey != null) {
+			TileInstance i = instances.get(oldKey);
 			if (i != null) {
 				i.refCount--;
 			}
@@ -283,6 +292,7 @@ public class DMM {
 			String key = unusedKeys.get(rand.nextInt(unusedKeys.size()));
 			unusedKeys.remove(key);
 			// Assign the instance
+			diffStack.push(new DMMDiff.InstanceDiff(this, key, ti));
 			instances.put(key, ti);
 			// Return the key
 			return key;
@@ -308,13 +318,13 @@ public class DMM {
 		keyLen++;
 		Set<String> unusedKeysSet = new TreeSet<>();
 		generateKeys(keyLen, "", unusedKeysSet);
-		unusedKeys = new ArrayList<>(unusedKeysSet);
+		ArrayList<String> newUnusedKeys = new ArrayList<>(unusedKeysSet);
 		BiMap<String, TileInstance> newInstances = HashBiMap.create();
 		Map<Location, String> newMap = new HashMap<>();
 		Map<String, String> substitutions = new HashMap<>();
 		for(Map.Entry<String, TileInstance> instance : instances.entrySet()) {
-			String newKey = unusedKeys.get(rand.nextInt(unusedKeys.size()));
-			unusedKeys.remove(newKey);
+			String newKey = newUnusedKeys.get(rand.nextInt(newUnusedKeys.size()));
+			newUnusedKeys.remove(newKey);
 			substitutions.put(instance.getKey(), newKey);
 			newInstances.put(newKey, instance.getValue());
 		}
@@ -322,8 +332,10 @@ public class DMM {
 			newMap.put(mapInst.getKey(), substitutions.get(mapInst.getValue()));
 		}
 		
+		diffStack.push(new DMMDiff.ExpandKeysDiff(this, map, newMap, instances, newInstances, unusedKeys, newUnusedKeys, keyLen-1, keyLen));
 		instances = newInstances;
 		map = newMap;
+		unusedKeys = newUnusedKeys;
 	}
 	
 	public void setSize(int nMinX, int nMinY, int nMinZ, int nMaxX, int nMaxY, int nMaxZ) {
@@ -359,7 +371,7 @@ public class DMM {
 				for(int z = minZ; z <= maxZ; z++) {
 					Location l = new Location(x, y, z);
 					if(!map.containsKey(l))
-						putMap(l, defaultInst);
+						putMap(l, defaultInst, false);
 				}
 			}
 		}
@@ -415,5 +427,16 @@ public class DMM {
 				
 		}
 		return o.toString();
+	}
+	
+	public DMMDiff popDiffs(){
+		if(diffStack.empty()){
+			return null;
+		}
+		DMMDiff diff = diffStack.pop();
+		while(!diffStack.empty()){
+			diff.combineWith(diffStack.pop());
+		}
+		return diff;
 	}
 }

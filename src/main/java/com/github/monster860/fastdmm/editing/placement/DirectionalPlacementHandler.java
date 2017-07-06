@@ -136,6 +136,7 @@ public class DirectionalPlacementHandler implements PlacementHandler {
 			TileInstance tInstance = editor.dmm.instances.get(key);
 			String newKey = tInstance.addObject(usedInstance);
 			editor.dmm.putMap(usedLocation, newKey);
+			editor.addToUndoStack(editor.dmm.popDiffs());
 		}
 	}
 }
