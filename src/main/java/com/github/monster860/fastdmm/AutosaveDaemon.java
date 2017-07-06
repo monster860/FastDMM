@@ -3,6 +3,9 @@ package com.github.monster860.fastdmm;
 import javax.swing.*;
 import java.io.FileNotFoundException;
 
+/**
+ * Runnable that waits for a minute then saves all loaded maps, forever.
+ */
 public class AutosaveDaemon implements Runnable
 {
     private FastDMM editor;
@@ -37,6 +40,7 @@ public class AutosaveDaemon implements Runnable
             }
             catch(InterruptedException e)
             {
+                //Don't interrupt me, damn it!
                 Thread.currentThread().interrupt();
             }
         }
