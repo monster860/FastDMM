@@ -3,6 +3,7 @@ package com.github.monster860.fastdmm.editing.placement;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -29,6 +30,7 @@ public class SelectPlacementMode implements PlacementMode {
         if(selection.contains(initialLocation) && !editor.isAltPressed && !editor.isCtrlPressed && !editor.isShiftPressed) {
         	floatSelect = new FloatingSelection(editor.dmm, selection, editor);
 			synchronized(editor) {
+				HashMap<Location, String[]> changes = new HashMap<Location, String[]>();
 				for(Location l : selection) {
 					String key = editor.dmm.map.get(l);
 					if(key == null)
@@ -38,9 +40,13 @@ public class SelectPlacementMode implements PlacementMode {
 						continue;
 				
 					String newKey = ti.deleteAllInFilter(editor);
-				
+					
+					String[] keys = {key, newKey};
+					changes.put(l, keys);
+					
 					editor.dmm.putMap(l, newKey);
 				}
+				editor.addToUndoStack(editor.dmm.popDiffs());
 			}
 			clearSelection();
         }
@@ -163,9 +169,10 @@ public class SelectPlacementMode implements PlacementMode {
 				if(editor.dmm == null)
 					return;
 				if(doCopy) {
-					new FloatingSelection(editor.dmm, selection.selection, editor).toClipboard();;
+					new FloatingSelection(editor.dmm, selection.selection, editor).toClipboard();
 				}
 				if(doDelete) {
+					HashMap<Location, String[]> changes = new HashMap<Location, String[]>();
 					for(Location l : selection.selection) {
 						String key = editor.dmm.map.get(l);
 						if(key == null)
@@ -175,9 +182,13 @@ public class SelectPlacementMode implements PlacementMode {
 							continue;
 					
 						String newKey = ti.deleteAllInFilter(editor);
-					
+						
+						String[] keys = {key, newKey};
+						changes.put(l, keys);
+						
 						editor.dmm.putMap(l, newKey);
 					}
+					editor.addToUndoStack(editor.dmm.popDiffs());
 					selection.clearSelection();
 				}
 			}
