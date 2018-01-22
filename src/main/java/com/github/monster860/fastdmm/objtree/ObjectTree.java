@@ -199,11 +199,17 @@ public class ObjectTree implements TreeModel {
 					outVal = new StringBuffer();
 					while(m.find()) {
 						switch(m.group(2)) {
+						
+						// If group1 or group3 is a period then this is definitely not a macro and just an eager match.
+						// Didn't feel like fixing the regex above. So this is a temporary fix. -Rockdtben
 						case "+":
-							m.appendReplacement(outVal, (Float.parseFloat(m.group(1)) + Float.parseFloat(m.group(3)))+"");
+							if (!m.group(1).equals(".") && !m.group(3).equals("."))
+								m.appendReplacement(outVal, (Float.parseFloat(m.group(1)) + Float.parseFloat(m.group(3)))+"");
 							break;
 						case "-":
-							m.appendReplacement(outVal, (Float.parseFloat(m.group(1)) / Float.parseFloat(m.group(3)))+"");
+							if (!m.group(1).equals(".") && !m.group(3).equals("."))
+								// This doesn't make much sense "-" and then it divides. Not gonna tackle this right now... -Rockdtben
+								m.appendReplacement(outVal, (Float.parseFloat(m.group(1)) / Float.parseFloat(m.group(3)))+"");
 							break;
 						}
 					}
